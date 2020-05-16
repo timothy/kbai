@@ -32,4 +32,23 @@ class Agent:
     # Make sure to return your answer *as an integer* at the end of Solve().
     # Returning your answer as a string may cause your program to crash.
     def Solve(self, problem):
+        self.problem = problem
+        print(problem)
+        return self.all_same_check(problem)
+
+    def all_same_check(self, problem):
+        a = Image.open(problem.figures['A'].visualFilename).convert('RGB')
+        b = Image.open(problem.figures['B'].visualFilename).convert('RGB')
+        c = Image.open(problem.figures['C'].visualFilename).convert('RGB')
+        diff = ImageChops.difference(a, b)
+        diff2 = ImageChops.difference(a, c)
+        if not diff.getbbox() and not diff2.getbbox():
+            for i in range(1, 6):
+                if not ImageChops.difference(a, self.open(i)).getbbox():
+                    print("the images are the same!")
+                    print(problem.name, i)
+                    return i
         return -1
+
+    def open(self, attr):
+        return Image.open(self.problem.figures[str(attr)].visualFilename).convert('RGB')
