@@ -9,8 +9,8 @@
 # These methods will be necessary for the project's main method to run.
 
 # Install Pillow and uncomment this line to access image processing.
-from PIL import Image, ImageChops
-import numpy
+from PIL import Image, ImageChops, ImageOps
+# import numpy
 
 
 class Agent:
@@ -20,6 +20,7 @@ class Agent:
     # Do not add any variables to this signature; they will not be used by
     # main().
     def __init__(self):
+        self.answer_indexes = [1, 6]
         pass
 
     # The primary method for solving incoming Raven's Progressive Matrices.
@@ -33,23 +34,70 @@ class Agent:
     # Returning your answer as a string may cause your program to crash.
     def Solve(self, problem):
         self.problem = problem
-        print(problem)
-        return self.all_same_check(problem)
+        answer = self.all_same_check()
+        if answer is not -1:
+            return answer
+        answer = self.is_a_c()
+        if answer is not -1:
+            return answer
+        answer = self.a_mirror_b()
+        if answer is not -1:
+            return answer
 
-    def all_same_check(self, problem):
-        a = self.open("A")
-        b = self.open("B")
-        c = self.open("C")
+        print(problem.name, problem.problemType)
+        return -1
+
+    # below are root thinking methods
+
+    def all_same_check(self):
+        """If A==B==C then look for A==i"""
+        a, b, c = self.open("A", "B", "C")
         if self.is_same(a, b, c):
-            for i in range(1, 6):
+            for i in self.answers():
                 if not ImageChops.difference(a, self.open(i)).getbbox():
                     print("the images are the same!")
-                    print(problem.name, i)
+                    print(self.problem.name, i)
                     return i
         return -1
 
-    def open(self, attr):
-        return Image.open(self.problem.figures[str(attr)].visualFilename).convert('RGB')
+    def is_a_c(self):
+        """If A==C then look for B==i"""
+        a, b, c = self.open("A", "B", "C")
+        if self.is_same(a, c):
+            for i in self.answers():
+                if self.is_same(b, self.open(i)):
+                    return i
+        return self.is_a_b()  # try the other way
+
+    def is_a_b(self):
+        """If A==B then look for C==i"""
+        a, b, c = self.open("A", "B", "C")
+        if self.is_same(a, b):
+            for i in self.answers():
+                if self.is_same(c, self.open(i)):
+                    return i
+        return -1
+
+    def a_mirror_b(self):  # TODO: go through each bit of B and check if it is the same as A. Count all bits that are different and return a simularity percentage. diff_bits/total_bits = diff percentage
+        """If B is a mirror if A the look for the mirror of C"""
+        a, b, c = self.open("A", "B", "C")
+        a_mirror = ImageOps.mirror(a)
+        if self.is_same(a_mirror, b):
+            c_mirror = ImageOps.mirror(c)
+            for i in self.answers():
+                if self.is_same(c_mirror, i):
+                    return i
+        return -1
+
+    # below are helper methods
+
+    def open(self, *attr):
+        if len(attr) is 1:
+            return Image.open(self.problem.figures[str(attr[0])].visualFilename).convert('RGB')
+        final = []
+        for i in attr:
+            final.append(Image.open(self.problem.figures[str(i)].visualFilename).convert('RGB'))
+        return final
 
     @staticmethod
     def is_same(*args):
@@ -59,3 +107,6 @@ class Agent:
                 return False
             last = args[i]
         return True
+
+    def answers(self):
+        return range(self.answer_indexes[0], self.answer_indexes[1])
