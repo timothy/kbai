@@ -37,12 +37,10 @@ class Agent:
         return self.all_same_check(problem)
 
     def all_same_check(self, problem):
-        a = Image.open(problem.figures['A'].visualFilename).convert('RGB')
-        b = Image.open(problem.figures['B'].visualFilename).convert('RGB')
-        c = Image.open(problem.figures['C'].visualFilename).convert('RGB')
-        diff = ImageChops.difference(a, b)
-        diff2 = ImageChops.difference(a, c)
-        if not diff.getbbox() and not diff2.getbbox():
+        a = self.open("A")
+        b = self.open("B")
+        c = self.open("C")
+        if self.is_same(a, b, c):
             for i in range(1, 6):
                 if not ImageChops.difference(a, self.open(i)).getbbox():
                     print("the images are the same!")
@@ -52,3 +50,12 @@ class Agent:
 
     def open(self, attr):
         return Image.open(self.problem.figures[str(attr)].visualFilename).convert('RGB')
+
+    @staticmethod
+    def is_same(*args):
+        last = args[0]
+        for i in range(1, len(args)):
+            if ImageChops.difference(last, args[i]).getbbox():
+                return False
+            last = args[i]
+        return True
