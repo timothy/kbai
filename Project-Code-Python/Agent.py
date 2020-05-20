@@ -10,7 +10,7 @@
 
 # Install Pillow and uncomment this line to access image processing.
 from PIL import Image, ImageChops, ImageOps
-# import numpy
+import numpy as np
 
 
 class Agent:
@@ -85,7 +85,7 @@ class Agent:
         if self.is_same(a_mirror, b):
             c_mirror = ImageOps.mirror(c)
             for i in self.answers():
-                if self.is_same(c_mirror, i):
+                if self.is_same(c_mirror, self.open(i)):
                     return i
         return -1
 
@@ -101,12 +101,22 @@ class Agent:
 
     @staticmethod
     def is_same(*args):
+        if len(args) <= 1:
+            return True
         last = args[0]
         for i in range(1, len(args)):
             if ImageChops.difference(last, args[i]).getbbox():
-                return False
+                if not Agent.close_enough(last, args[i]):
+                    return False
             last = args[i]
         return True
 
     def answers(self):
         return range(self.answer_indexes[0], self.answer_indexes[1])
+
+    @staticmethod
+    def close_enough(a, b):
+        np_a = np.array(a)
+        np_b = np.array(b)
+        test = np.mean(np_a == np_b)
+        return test >= .98
