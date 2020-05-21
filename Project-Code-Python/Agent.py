@@ -87,6 +87,17 @@ class Agent:
             for i in self.answers():
                 if self.is_same(c_mirror, self.open(i)):
                     return i
+        return self.a_mirror_c()
+
+    def a_mirror_c(self):
+        """If C is a mirror if A the look for the mirror of B"""
+        a, b, c = self.open("A", "B", "C")
+        a_mirror = ImageOps.mirror(a)
+        if self.is_same(a_mirror, c):
+            b_mirror = ImageOps.mirror(b)
+            for i in self.answers():
+                if self.is_same(b_mirror, self.open(i)):
+                    return i
         return -1
 
     # below are helper methods
@@ -119,4 +130,4 @@ class Agent:
         np_a = np.array(a)
         np_b = np.array(b)
         test = np.mean(np_a == np_b)
-        return test >= .98
+        return test >= .95
