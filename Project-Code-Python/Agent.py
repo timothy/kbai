@@ -11,6 +11,7 @@
 # Install Pillow and uncomment this line to access image processing.
 from PIL import Image, ImageChops, ImageOps
 import numpy as np
+import math
 
 
 class Agent:
@@ -41,6 +42,12 @@ class Agent:
         if answer is not -1:
             return answer
         answer = self.a_mirror_b()
+        if answer is not -1:
+            return answer
+        answer = self.a_rotation_c()
+        if answer is not -1:
+            return answer
+        answer = self.a_2_b_as_c_2_x()
         if answer is not -1:
             return answer
 
@@ -79,7 +86,7 @@ class Agent:
         return -1
 
     def a_mirror_b(self):
-        """If B is a mirror if A the look for the mirror of C"""
+        """If B is a mirror of A then look for the mirror of C"""
         a, b, c = self.open("A", "B", "C")
         a_mirror = ImageOps.mirror(a)
         if self.is_same(a_mirror, b):
@@ -90,7 +97,7 @@ class Agent:
         return self.a_mirror_c()
 
     def a_mirror_c(self):
-        """If C is a mirror if A the look for the mirror of B"""
+        """If C is a mirror of A then look for the mirror of B"""
         a, b, c = self.open("A", "B", "C")
         a_mirror = ImageOps.mirror(a)
         if self.is_same(a_mirror, c):
@@ -98,6 +105,37 @@ class Agent:
             for i in self.answers():
                 if self.is_same(b_mirror, self.open(i)):
                     return i
+        return -1
+
+    def a_rotation_c(self):
+        """If C is a rotation of A then look for the rotation of B"""
+        a, b, c = self.open("A", "B", "C")
+        degrees = Agent.rotation_check(a, c)
+        if degrees != -1:
+            b_rotated = b.rotate(degrees)
+            for i in self.answers():
+                if self.is_same(b_rotated, self.open(i)):
+                    return i
+        return self.a_rotation_b()
+
+    def a_rotation_b(self):
+        """If B is a rotation of A then look for the rotation of C"""
+        a, b, c = self.open("A", "B", "C")
+        degrees = Agent.rotation_check(a, b)
+        if degrees != -1:
+            c_rotated = c.rotate(degrees)
+            for i in self.answers():
+                if self.is_same(c_rotated, self.open(i)):
+                    return i
+        return -1
+
+    def a_2_b_as_c_2_x(self):
+        """A is to B as C is to X"""
+        a, b, c = self.open("A", "B", "C")
+        sim_score = math.floor(Agent.similarity_score(a, b) * 100)
+        for i in self.answers():
+            if math.floor(Agent.similarity_score(c, self.open(i)) * 100) == sim_score:
+                return i
         return -1
 
     # below are helper methods
@@ -127,7 +165,21 @@ class Agent:
 
     @staticmethod
     def close_enough(a, b):
+        return Agent.similarity_score(a, b) >= .95
+
+    @staticmethod
+    def rotation_check(a, b):
+        """"Returns -1 if no match is found otherwise it returns the matching rotation"""
+        if Agent.close_enough(a.rotate(90), b):
+            return 90
+        if Agent.close_enough(a.rotate(180), b):
+            return 180
+        if Agent.close_enough(a.rotate(270), b):
+            return 270
+        return -1
+
+    @staticmethod
+    def similarity_score(a, b):
         np_a = np.array(a)
         np_b = np.array(b)
-        test = np.mean(np_a == np_b)
-        return test >= .95
+        return np.mean(np_a == np_b)
