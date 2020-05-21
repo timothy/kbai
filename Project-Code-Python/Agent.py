@@ -20,7 +20,7 @@ class Agent:
     # Do not add any variables to this signature; they will not be used by
     # main().
     def __init__(self):
-        self.answer_indexes = [1, 6]
+        self.answer_indexes = [1, 7]
         pass
 
     # The primary method for solving incoming Raven's Progressive Matrices.
@@ -78,7 +78,7 @@ class Agent:
                     return i
         return -1
 
-    def a_mirror_b(self):  # TODO: go through each bit of B and check if it is the same as A. Count all bits that are different and return a simularity percentage. diff_bits/total_bits = diff percentage
+    def a_mirror_b(self):
         """If B is a mirror if A the look for the mirror of C"""
         a, b, c = self.open("A", "B", "C")
         a_mirror = ImageOps.mirror(a)
