@@ -9,7 +9,7 @@
 # These methods will be necessary for the project's main method to run.
 
 # Install Pillow and uncomment this line to access image processing.
-from PIL import Image, ImageChops, ImageOps
+from PIL import Image, ImageChops, ImageOps, ImageDraw
 import numpy as np
 import math
 
@@ -48,6 +48,9 @@ class Agent:
         if answer is not -1:
             return answer
         answer = self.a_2_b_as_c_2_x()
+        if answer is not -1:
+            return answer
+        answer = self.a_fill_b()
         if answer is not -1:
             return answer
 
@@ -136,6 +139,30 @@ class Agent:
         for i in self.answers():
             if math.floor(Agent.similarity_score(c, self.open(i)) * 100) == sim_score:
                 return i
+        return -1  # TODO create a_2_c_as_b_2_x
+
+    def a_fill_b(self):
+        """
+        Note: this can easily create false positives and should go last in the thinking pipeline
+        If A Filled solid is the same as B then look for answer that is C filled solid
+        """
+        a, b, c = self.open("A", "B", "C")
+        if self.is_same(Agent.fill_shape(a), b):
+            for i in self.answers():
+                if self.is_same(Agent.fill_shape(c), self.open(i)):
+                    return i
+        return self.a_fill_c()
+
+    def a_fill_c(self):
+        """
+        Note: this can easily create false positives and should go last in the thinking pipeline
+        If A Filled solid is the same as C then look for answer that is B filled solid
+        """
+        a, b, c = self.open("A", "B", "C")
+        if self.is_same(Agent.fill_shape(a), c):
+            for i in self.answers():
+                if self.is_same(Agent.fill_shape(b), self.open(i)):
+                    return i
         return -1
 
     # below are helper methods
@@ -183,3 +210,11 @@ class Agent:
         np_a = np.array(a)
         np_b = np.array(b)
         return np.mean(np_a == np_b)
+
+    @staticmethod
+    def fill_shape(a):
+        ImageDraw.floodfill(a, xy=(0, 0), value=(255, 0, 255), thresh=200)  # fill around shape with magenta
+        a = np.array(a)
+        a[(a[:, :, 0:3] != [255, 0, 255]).any(2)] = [0, 0, 0]  # fill remaining white pixes with black
+        a[(a[:, :, 0:3] == [255, 0, 255]).all(2)] = [255, 255, 255]  # Revert magenta pixels to white
+        return Image.fromarray(a)

@@ -1,9 +1,12 @@
-from PIL import Image, ImageChops, ImageOps
+from PIL import Image, ImageChops, ImageOps, ImageDraw
 import numpy as np
 import math
+
 img1 = Image.open('./Problems/Basic Problems B/Basic Problem B-01/A.png').convert('RGB')
 img2 = Image.open('./Problems/Basic Problems B/Basic Problem B-12/C.png').convert('RGB')
 
+
+# TODO problem 10. A - B
 
 # diff = ImageChops.difference(img2, img1)
 
@@ -24,32 +27,62 @@ def te(*t):
 
 # print(b)
 
+def close_enough(a, b):
+    np_a = np.array(a)
+    np_b = np.array(b)
+    return np.mean(np_a == np_b) >= .95
+
+
 def o(var):
-    return Image.open('./Problems/Basic Problems B/Basic Problem B-05/' + var + '.png').convert('RGB')
+    return Image.open('./Problems/Basic Problems B/Basic Problem B-09/' + var + '.png').convert('RGB')
 
 
 a = o("A")
-b = o("B")
-a_mirror = ImageOps.mirror(a)
-# a_mirror.show()
-# a.rotate(90).show()
-# b.rotate(90).show()
-# a.rotate(180).show()
+b = np.array(o("B"))
+c = np.array(o("C"))
+
+ImageDraw.floodfill(a, xy=(0, 0), value=(255, 0, 255), thresh=200)
+
+# a.show()
+n = np.array(a)
+
+n[(n[:, :, 0:3] != [255, 0, 255]).any(2)] = [0, 0, 0]
+
+# Revert all artifically filled magenta pixels to white
+n[(n[:, :, 0:3] == [255, 0, 255]).all(2)] = [255, 255, 255]
+
+print(np.mean(n == b))
+
+#######################################
+# a = np.array(o("A"))
+# b = np.array(o("B"))
+# c = np.array(o("C"))
 #
-# a.rotate(270).show()
-
-
-# b.show()
-# ImageChops.difference(a_mirror, b).show()
-np_a = np.array(a)
-np_b = np.array(b)
-result = np.mean(np_a == np_b)
-print(math.floor(result * 100))
-
-np_a = np.array(o("C"))
-np_b = np.array(o("1"))
-result = np.mean(np_a == np_b)
-print(math.floor(result * 100))
+# x = a-c
+# result = b+x
+#
+# Image.fromarray(result).show()
+####################################
+# a_mirror = ImageOps.mirror(a)
+# # a_mirror.show()
+# # a.rotate(90).show()
+# # b.rotate(90).show()
+# # a.rotate(180).show()
+# #
+# # a.rotate(270).show()
+#
+#
+# # b.show()
+# # ImageChops.difference(a_mirror, b).show()
+# np_a = np.array(a)
+# np_b = np.array(b)
+# result = np.mean(np_a == np_b)
+# print(math.floor(result * 100))
+#
+# np_a = np.array(o("C"))
+# np_b = np.array(o("1"))
+# result = np.mean(np_a == np_b)
+# print(math.floor(result * 100))
 # 0.9572010869565217
 # a_mirror = ImageOps.mirror(a)
 # diff = ImageChops.difference(a_mirror, b)
