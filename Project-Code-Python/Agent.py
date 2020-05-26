@@ -137,9 +137,18 @@ class Agent:
         a, b, c = self.open("A", "B", "C")
         sim_score = math.floor(Agent.similarity_score(a, b) * 100)
         for i in self.answers():
-            if math.floor(Agent.similarity_score(c, self.open(i)) * 100) == sim_score:
+            if Agent.margin_of_error(math.floor(Agent.similarity_score(c, self.open(i)) * 100), sim_score):
                 return i
-        return -1  # TODO create a_2_c_as_b_2_x
+        return self.a_2_c_as_b_2_x()
+
+    def a_2_c_as_b_2_x(self):
+        """A is to C as B is to X"""
+        a, b, c = self.open("A", "B", "C")
+        sim_score = math.floor(Agent.similarity_score(a, c) * 100)
+        for i in self.answers():
+            if Agent.margin_of_error(math.floor(Agent.similarity_score(b, self.open(i)) * 100), sim_score):
+                return i
+        return -1
 
     def a_fill_b(self):
         """
@@ -218,3 +227,13 @@ class Agent:
         a[(a[:, :, 0:3] != [255, 0, 255]).any(2)] = [0, 0, 0]  # fill remaining white pixes with black
         a[(a[:, :, 0:3] == [255, 0, 255]).all(2)] = [255, 255, 255]  # Revert magenta pixels to white
         return Image.fromarray(a)
+
+    @staticmethod
+    def margin_of_error(a, b, moe=1):
+        """
+        This will check if the values are within the margin of error
+        3 give or take
+        """
+        if a - moe <= b <= a + moe:
+            return True
+        return False

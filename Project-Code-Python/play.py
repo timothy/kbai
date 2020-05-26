@@ -34,24 +34,53 @@ def close_enough(a, b):
 
 
 def o(var):
-    return Image.open('./Problems/Basic Problems B/Basic Problem B-09/' + var + '.png').convert('RGB')
+    return Image.open('./Problems/Basic Problems B/Basic Problem B-10/' + var + '.png').convert('RGB')
 
 
-a = o("A")
+a = np.array(o("A"))
 b = np.array(o("B"))
 c = np.array(o("C"))
+three = np.array(o("3"))
 
-ImageDraw.floodfill(a, xy=(0, 0), value=(255, 0, 255), thresh=200)
+# print("a=b", np.mean(a == b))
+# print("n=b", np.mean(b == c))
+print("a=c", math.floor(np.mean(a == c)*100))
+print("b=3", np.mean(b == three))
+
+
+# ImageDraw.floodfill(a, xy=(0, 0), value=(255, 0, 255), thresh=200)
 
 # a.show()
-n = np.array(a)
+# n = np.array(a)
+# ap = np.count_nonzero(a)
+# bp = np.count_nonzero(b)
+# cp = np.count_nonzero(c)
+# threep = np.count_nonzero(three)
+#
+# print("a-c", abs(ap - cp))
+# print("b-3", abs(threep - bp))
+# print("diff", abs(abs(ap - cp) - abs(threep - bp)))
+# print("c-3", cp - threep)
+#
+# print("n=b", np.mean(n == b))
+# print("c=3", np.mean(c == three))
+#
 
-n[(n[:, :, 0:3] != [255, 0, 255]).any(2)] = [0, 0, 0]
+#
+# print("a-c", ap - cp)
+# print("b-3", bp - threep)
+#
+# print(ap, bp, cp, threep)
 
-# Revert all artifically filled magenta pixels to white
-n[(n[:, :, 0:3] == [255, 0, 255]).all(2)] = [255, 255, 255]
+# n[(n[:, :, 0:3] != [255, 0, 255]).any(2)] = [0, 0, 0]
+#
+# # Revert all artifically filled magenta pixels to white
+# n[(n[:, :, 0:3] == [255, 0, 255]).all(2)] = [255, 255, 255]
+# Image.fromarray(n).show()
+#
+# print(np.mean(n == b))
 
-print(np.mean(n == b))
+# count all extra black pixals from A to B and find img with the same amount.
 
 #######################################
 # a = np.array(o("A"))
@@ -103,3 +132,37 @@ print(np.mean(n == b))
 # new_im = Image.fromarray(result)
 # new_im.show()
 # new_im.save("numpy_altered_sample2.png")
+
+
+def margin_of_error(a, b, moe=1):
+    """
+    This will check if the values are within the margin of error
+    3 give or take
+    """
+    print(a - moe)
+    print(b)
+    print(a + moe)
+    if a - moe <= b <= a + moe:
+        return True
+    return False
+
+
+def similarity_score(a, b):
+    np_a = np.array(a)
+    np_b = np.array(b)
+    return np.mean(np_a == np_b)
+
+
+def a_2_c_as_b_2_x():
+    """A is to C as B is to X"""
+    a = o("A")
+    b = o("B")
+    c = o("C")
+    sim_score = math.floor(similarity_score(a, c) * 100)
+    for i in range(1, 7):
+        if margin_of_error(math.floor(similarity_score(b, o(str(i))) * 100), sim_score):
+            return i
+    return -1
+
+
+print(a_2_c_as_b_2_x())
