@@ -58,7 +58,7 @@ class Agent:
         return -1
 
     # below are root thinking methods
-
+##### TODO: change everything to the best! check_best_match()
     def all_same_check(self):
         """If A==B==C then look for A==i"""
         a, b, c = self.open("A", "B", "C")
@@ -94,9 +94,9 @@ class Agent:
         a_mirror = ImageOps.mirror(a)
         if self.is_same(a_mirror, b):
             c_mirror = ImageOps.mirror(c)
-            for i in self.answers():
-                if self.is_same(c_mirror, self.open(i)):
-                    return i
+            best = self.check_best_match(c_mirror)
+            if self.is_same(c_mirror, self.open(best)):
+                return best
         return self.a_mirror_c()
 
     def a_mirror_c(self):
@@ -201,7 +201,7 @@ class Agent:
 
     @staticmethod
     def close_enough(a, b):
-        return Agent.similarity_score(a, b) >= .95
+        return Agent.similarity_score(a, b) >= .94
 
     @staticmethod
     def rotation_check(a, b):
@@ -222,7 +222,7 @@ class Agent:
 
     @staticmethod
     def fill_shape(a):
-        ImageDraw.floodfill(a, xy=(0, 0), value=(255, 0, 255), thresh=200)  # fill around shape with magenta
+        Agent.floodfill(a, xy=(0, 0), value=(255, 0, 255), thresh=200)  # fill around shape with magenta
         a = np.array(a)
         a[(a[:, :, 0:3] != [255, 0, 255]).any(2)] = [0, 0, 0]  # fill remaining white pixes with black
         a[(a[:, :, 0:3] == [255, 0, 255]).all(2)] = [255, 255, 255]  # Revert magenta pixels to white
@@ -237,3 +237,80 @@ class Agent:
         if a - moe <= b <= a + moe:
             return True
         return False
+
+    def check_best_match(self, a):
+        """this will compare letter with all numbers and return the one closest to it"""
+        high_val = [0, 0]  # [value, index]
+        for i in self.answers():
+            sim_score = Agent.similarity_score(a, self.open(i))
+            if sim_score > high_val[0]:
+                high_val[0] = sim_score
+                high_val[1] = i
+        return high_val[1]
+
+    # Below code is from PIL Library
+
+    @staticmethod
+    def _color_diff(color1, color2):
+        """
+        Uses 1-norm distance to calculate difference between two values.
+        """
+        if isinstance(color2, tuple):
+            return sum([abs(color1[i] - color2[i]) for i in range(0, len(color2))])
+        else:
+            return abs(color1 - color2)
+
+    @staticmethod
+    def floodfill(image, xy, value, border=None, thresh=0):
+        """
+        (experimental) Fills a bounded region with a given color.
+        :param image: Target image.
+        :param xy: Seed position (a 2-item coordinate tuple). See
+            :ref:`coordinate-system`.
+        :param value: Fill color.
+        :param border: Optional border value.  If given, the region consists of
+            pixels with a color different from the border color.  If not given,
+            the region consists of pixels having the same color as the seed
+            pixel.
+        :param thresh: Optional threshold value which specifies a maximum
+            tolerable difference of a pixel value from the 'background' in
+            order for it to be replaced. Useful for filling regions of
+            non-homogeneous, but similar, colors.
+        """
+        # based on an implementation by Eric S. Raymond
+        # amended by yo1995 @20180806
+        pixel = image.load()
+        x, y = xy
+        try:
+            background = pixel[x, y]
+            if Agent._color_diff(value, background) <= thresh:
+                return  # seed point already has fill color
+            pixel[x, y] = value
+        except (ValueError, IndexError):
+            return  # seed point outside image
+        edge = {(x, y)}
+        # use a set to keep record of current and previous edge pixels
+        # to reduce memory consumption
+        full_edge = set()
+        while edge:
+            new_edge = set()
+            for (x, y) in edge:  # 4 adjacent method
+                for (s, t) in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                    # If already processed, or if a coordinate is negative, skip
+                    if (s, t) in full_edge or s < 0 or t < 0:
+                        continue
+                    try:
+                        p = pixel[s, t]
+                    except (ValueError, IndexError):
+                        pass
+                    else:
+                        full_edge.add((s, t))
+                        if border is None:
+                            fill = Agent._color_diff(p, background) <= thresh
+                        else:
+                            fill = p != value and p != border
+                        if fill:
+                            pixel[s, t] = value
+                            new_edge.add((s, t))
+            full_edge = edge  # discard pixels processed
+            edge = new_edge

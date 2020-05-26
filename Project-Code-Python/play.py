@@ -2,7 +2,8 @@ from PIL import Image, ImageChops, ImageOps, ImageDraw
 import numpy as np
 import math
 
-img1 = Image.open('./Problems/Basic Problems B/Basic Problem B-01/A.png').convert('RGB')
+
+img1 = Image.open('./Problems/Basic Problems B/Basic Problem B-09/A.png').convert('RGB')
 img2 = Image.open('./Problems/Basic Problems B/Basic Problem B-12/C.png').convert('RGB')
 
 
@@ -10,6 +11,82 @@ img2 = Image.open('./Problems/Basic Problems B/Basic Problem B-12/C.png').conver
 
 # diff = ImageChops.difference(img2, img1)
 
+
+# def _color_diff(color1, color2):
+#     """
+#     Uses 1-norm distance to calculate difference between two values.
+#     """
+#     if isinstance(color2, tuple):
+#         return sum([abs(color1[i] - color2[i]) for i in range(0, len(color2))])
+#     else:
+#         return abs(color1 - color2)
+#
+#
+# def floodfill(image, xy, value, border=None, thresh=0):
+#     """
+#     (experimental) Fills a bounded region with a given color.
+#     :param image: Target image.
+#     :param xy: Seed position (a 2-item coordinate tuple). See
+#         :ref:`coordinate-system`.
+#     :param value: Fill color.
+#     :param border: Optional border value.  If given, the region consists of
+#         pixels with a color different from the border color.  If not given,
+#         the region consists of pixels having the same color as the seed
+#         pixel.
+#     :param thresh: Optional threshold value which specifies a maximum
+#         tolerable difference of a pixel value from the 'background' in
+#         order for it to be replaced. Useful for filling regions of
+#         non-homogeneous, but similar, colors.
+#     """
+#     # based on an implementation by Eric S. Raymond
+#     # amended by yo1995 @20180806
+#     pixel = image.load()
+#     x, y = xy
+#     try:
+#         background = pixel[x, y]
+#         if _color_diff(value, background) <= thresh:
+#             return  # seed point already has fill color
+#         pixel[x, y] = value
+#     except (ValueError, IndexError):
+#         return  # seed point outside image
+#     edge = {(x, y)}
+#     # use a set to keep record of current and previous edge pixels
+#     # to reduce memory consumption
+#     full_edge = set()
+#     while edge:
+#         new_edge = set()
+#         for (x, y) in edge:  # 4 adjacent method
+#             for (s, t) in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+#                 # If already processed, or if a coordinate is negative, skip
+#                 if (s, t) in full_edge or s < 0 or t < 0:
+#                     continue
+#                 try:
+#                     p = pixel[s, t]
+#                 except (ValueError, IndexError):
+#                     pass
+#                 else:
+#                     full_edge.add((s, t))
+#                     if border is None:
+#                         fill = _color_diff(p, background) <= thresh
+#                     else:
+#                         fill = p != value and p != border
+#                     if fill:
+#                         pixel[s, t] = value
+#                         new_edge.add((s, t))
+#         full_edge = edge  # discard pixels processed
+#         edge = new_edge
+#
+#
+# def fill_shape(a):
+#     floodfill(a, xy=(0, 0), value=(255, 0, 255))  # fill around shape with magenta
+#     a = np.array(a)
+#     a[(a[:, :, 0:3] != [255, 0, 255]).any(2)] = [0, 0, 0]  # fill remaining white pixes with black
+#     a[(a[:, :, 0:3] == [255, 0, 255]).all(2)] = [255, 255, 255]  # Revert magenta pixels to white
+#     return Image.fromarray(a)
+#
+
+
+# fill_shape(img1).show()
 
 # print(diff.getbbox())
 # if diff.getbbox():
@@ -34,18 +111,36 @@ def close_enough(a, b):
 
 
 def o(var):
-    return Image.open('./Problems/Basic Problems B/Basic Problem B-10/' + var + '.png').convert('RGB')
+    # return Image.open('./Problems/Basic Problems B/Basic Problem B-10/' + var + '.png').convert('RGB')
+    return Image.open('./Problems/Challenge Problems B/Challenge Problem B-05/' + var + '.png').convert('RGB')
 
 
-a = np.array(o("A"))
-b = np.array(o("B"))
-c = np.array(o("C"))
-three = np.array(o("3"))
+
+
+l = [5,3,8,2]
+
+print(max(l))
+
+#
+# a = o("C")
+# # a.rotate(270)
+# a = np.array(a.rotate(270))
+# b = np.array(o("6"))
+# # print(np.mean(a == b))
+# # print(close_enough(a, b))
+# black_pixels_a = np.all(o("A") == [0, 0, 0], axis=-1)
+# black_pixels_b = np.all(o("B") == [0, 0, 0], axis=-1)
+# black_pixels_c = np.all(o("C") == [0, 0, 0], axis=-1)
+# black_pixels_6 = np.all(o("6") == [0, 0, 0], axis=-1)
+#
+# print(black_pixels_a, black_pixels_b, black_pixels_c, black_pixels_6)
+# c = np.array(o("C"))
+# three = np.array(o("3"))
 
 # print("a=b", np.mean(a == b))
 # print("n=b", np.mean(b == c))
-print("a=c", math.floor(np.mean(a == c)*100))
-print("b=3", np.mean(b == three))
+# print("a=c", math.floor(np.mean(a == b)))
+# print("b=3", np.mean(b == three))
 
 
 # ImageDraw.floodfill(a, xy=(0, 0), value=(255, 0, 255), thresh=200)
@@ -134,35 +229,35 @@ print("b=3", np.mean(b == three))
 # new_im.save("numpy_altered_sample2.png")
 
 
-def margin_of_error(a, b, moe=1):
-    """
-    This will check if the values are within the margin of error
-    3 give or take
-    """
-    print(a - moe)
-    print(b)
-    print(a + moe)
-    if a - moe <= b <= a + moe:
-        return True
-    return False
-
-
-def similarity_score(a, b):
-    np_a = np.array(a)
-    np_b = np.array(b)
-    return np.mean(np_a == np_b)
-
-
-def a_2_c_as_b_2_x():
-    """A is to C as B is to X"""
-    a = o("A")
-    b = o("B")
-    c = o("C")
-    sim_score = math.floor(similarity_score(a, c) * 100)
-    for i in range(1, 7):
-        if margin_of_error(math.floor(similarity_score(b, o(str(i))) * 100), sim_score):
-            return i
-    return -1
-
-
-print(a_2_c_as_b_2_x())
+# def margin_of_error(a, b, moe=1):
+#     """
+#     This will check if the values are within the margin of error
+#     3 give or take
+#     """
+#     print(a - moe)
+#     print(b)
+#     print(a + moe)
+#     if a - moe <= b <= a + moe:
+#         return True
+#     return False
+#
+#
+# def similarity_score(a, b):
+#     np_a = np.array(a)
+#     np_b = np.array(b)
+#     return np.mean(np_a == np_b)
+#
+#
+# def a_2_c_as_b_2_x():
+#     """A is to C as B is to X"""
+#     a = o("A")
+#     b = o("B")
+#     c = o("C")
+#     sim_score = math.floor(similarity_score(a, c) * 100)
+#     for i in range(1, 7):
+#         if margin_of_error(math.floor(similarity_score(b, o(str(i))) * 100), sim_score):
+#             return i
+#     return -1
+#
+#
+# print(a_2_c_as_b_2_x())
