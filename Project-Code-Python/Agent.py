@@ -22,6 +22,7 @@ class Agent:
     # main().
     def __init__(self):
         self.answer_indexes = [1, 7]
+        self.white = (255, 255, 255)
         pass
 
     # The primary method for solving incoming Raven's Progressive Matrices.
@@ -37,55 +38,59 @@ class Agent:
         self.problem = problem
         answer = self.all_same_check()
         if answer is not -1:
+            print(problem.name, problem.problemType, "all_same_check")
             return answer
         answer = self.is_a_c()
         if answer is not -1:
+            print(problem.name, problem.problemType, "is_a_c")
             return answer
         answer = self.a_mirror_b()
         if answer is not -1:
+            print(problem.name, problem.problemType, "a_mirror_b")
             return answer
         answer = self.a_rotation_c()
         if answer is not -1:
+            print(problem.name, problem.problemType, "a_rotation_c")
             return answer
         answer = self.a_2_b_as_c_2_x()
         if answer is not -1:
+            print(problem.name, problem.problemType, "a_2_b_as_c_2_x")
             return answer
         answer = self.a_fill_b()
         if answer is not -1:
+            print(problem.name, problem.problemType, "a_fill_b")
             return answer
 
         print(problem.name, problem.problemType)
         return -1
 
     # below are root thinking methods
-##### TODO: change everything to the best! check_best_match()
+
     def all_same_check(self):
         """If A==B==C then look for A==i"""
         a, b, c = self.open("A", "B", "C")
         if self.is_same(a, b, c):
-            for i in self.answers():
-                if not ImageChops.difference(a, self.open(i)).getbbox():
-                    print("the images are the same!")
-                    print(self.problem.name, i)
-                    return i
+            best_match = self.check_best_match(a)
+            if self.is_same(a, self.open(best_match)):
+                return best_match
         return -1
 
     def is_a_c(self):
         """If A==C then look for B==i"""
         a, b, c = self.open("A", "B", "C")
-        if self.is_same(a, c):
-            for i in self.answers():
-                if self.is_same(b, self.open(i)):
-                    return i
+        if self.strict_same(a, c):
+            best_match = self.check_best_match(b)
+            if self.is_same(b, self.open(best_match)):
+                return best_match
         return self.is_a_b()  # try the other way
 
     def is_a_b(self):
         """If A==B then look for C==i"""
         a, b, c = self.open("A", "B", "C")
-        if self.is_same(a, b):
-            for i in self.answers():
-                if self.is_same(c, self.open(i)):
-                    return i
+        if self.strict_same(a, b):
+            best_match = self.check_best_match(c)
+            if self.is_same(c, self.open(best_match)):
+                return best_match
         return -1
 
     def a_mirror_b(self):
@@ -105,9 +110,9 @@ class Agent:
         a_mirror = ImageOps.mirror(a)
         if self.is_same(a_mirror, c):
             b_mirror = ImageOps.mirror(b)
-            for i in self.answers():
-                if self.is_same(b_mirror, self.open(i)):
-                    return i
+            best = self.check_best_match(b_mirror)
+            if self.is_same(b_mirror, self.open(best)):
+                return best
         return -1
 
     def a_rotation_c(self):
@@ -115,10 +120,10 @@ class Agent:
         a, b, c = self.open("A", "B", "C")
         degrees = Agent.rotation_check(a, c)
         if degrees != -1:
-            b_rotated = b.rotate(degrees)
-            for i in self.answers():
-                if self.is_same(b_rotated, self.open(i)):
-                    return i
+            b_rotated = Agent.rotate(b, degrees)
+            best_match = self.check_best_match(b_rotated)
+            if self.is_same(b_rotated, self.open(best_match)):
+                return best_match
         return self.a_rotation_b()
 
     def a_rotation_b(self):
@@ -126,28 +131,28 @@ class Agent:
         a, b, c = self.open("A", "B", "C")
         degrees = Agent.rotation_check(a, b)
         if degrees != -1:
-            c_rotated = c.rotate(degrees)
-            for i in self.answers():
-                if self.is_same(c_rotated, self.open(i)):
-                    return i
+            c_rotated = Agent.rotate(c, degrees)
+            best_match = self.check_best_match(c_rotated)
+            if self.is_same(c_rotated, self.open(best_match)):
+                return best_match
         return -1
 
     def a_2_b_as_c_2_x(self):
         """A is to B as C is to X"""
         a, b, c = self.open("A", "B", "C")
         sim_score = math.floor(Agent.similarity_score(a, b) * 100)
-        for i in self.answers():
-            if Agent.margin_of_error(math.floor(Agent.similarity_score(c, self.open(i)) * 100), sim_score):
-                return i
+        closest_match = self.best_similarity(c, Agent.similarity_score(a, b))
+        if Agent.margin_of_error(math.floor(Agent.similarity_score(c, self.open(closest_match)) * 100), sim_score):
+            return closest_match
         return self.a_2_c_as_b_2_x()
 
     def a_2_c_as_b_2_x(self):
         """A is to C as B is to X"""
         a, b, c = self.open("A", "B", "C")
         sim_score = math.floor(Agent.similarity_score(a, c) * 100)
-        for i in self.answers():
-            if Agent.margin_of_error(math.floor(Agent.similarity_score(b, self.open(i)) * 100), sim_score):
-                return i
+        closest_match = self.best_similarity(b, Agent.similarity_score(a, c))
+        if Agent.margin_of_error(math.floor(Agent.similarity_score(b, self.open(closest_match)) * 100), sim_score):
+            return closest_match
         return -1
 
     def a_fill_b(self):
@@ -157,9 +162,10 @@ class Agent:
         """
         a, b, c = self.open("A", "B", "C")
         if self.is_same(Agent.fill_shape(a), b):
-            for i in self.answers():
-                if self.is_same(Agent.fill_shape(c), self.open(i)):
-                    return i
+            c_filled = Agent.fill_shape(c)
+            best_match = self.check_best_match(c_filled)
+            if self.is_same(c_filled, self.open(best_match)):
+                return best_match
         return self.a_fill_c()
 
     def a_fill_c(self):
@@ -169,9 +175,10 @@ class Agent:
         """
         a, b, c = self.open("A", "B", "C")
         if self.is_same(Agent.fill_shape(a), c):
-            for i in self.answers():
-                if self.is_same(Agent.fill_shape(b), self.open(i)):
-                    return i
+            b_filled = Agent.fill_shape(b)
+            best_match = self.check_best_match(b_filled)
+            if self.is_same(b_filled, self.open(best_match)):
+                return best_match
         return -1
 
     # below are helper methods
@@ -196,22 +203,29 @@ class Agent:
             last = args[i]
         return True
 
+    @staticmethod
+    def strict_same(a, b, percent_same=.99):
+        if percent_same == 1:
+            return False if ImageChops.difference(a, b).getbbox() else True
+        if ImageChops.difference(a, b).getbbox():
+            if not Agent.close_enough(a, b, percent_same):
+                return False
+        return True
+
     def answers(self):
         return range(self.answer_indexes[0], self.answer_indexes[1])
 
     @staticmethod
-    def close_enough(a, b):
-        return Agent.similarity_score(a, b) >= .94
+    def close_enough(a, b, percent_same=.94):
+        return Agent.similarity_score(a, b) >= percent_same
 
     @staticmethod
     def rotation_check(a, b):
         """"Returns -1 if no match is found otherwise it returns the matching rotation"""
-        if Agent.close_enough(a.rotate(90), b):
-            return 90
-        if Agent.close_enough(a.rotate(180), b):
-            return 180
-        if Agent.close_enough(a.rotate(270), b):
-            return 270
+        loop_count = int(360/15)
+        for i in range(1, loop_count):
+            if Agent.close_enough(Agent.rotate(a, 15*i), b):
+                return 15*i
         return -1
 
     @staticmethod
@@ -238,9 +252,26 @@ class Agent:
             return True
         return False
 
+    @staticmethod
+    def rotate(a, degrees):
+        rot = a.convert('RGBA').rotate(degrees, expand=0)
+        fff = Image.new('RGBA', rot.size, (255,) * 4)
+        out = Image.composite(rot, fff, rot)
+        return out.convert(a.mode)
+
+    def best_similarity(self, a, sim_score, moe=1):
+        """This looks for closest match to sim_score of A"""
+        low_val = [1, 1]  # [value, index]
+        for i in self.answers():
+            new_val = abs(sim_score - Agent.similarity_score(a, self.open(i)))
+            if new_val < low_val[0]:
+                low_val[0] = new_val
+                low_val[1] = i
+        return low_val[1]
+
     def check_best_match(self, a):
         """this will compare letter with all numbers and return the one closest to it"""
-        high_val = [0, 0]  # [value, index]
+        high_val = [0, 1]  # [value, index]
         for i in self.answers():
             sim_score = Agent.similarity_score(a, self.open(i))
             if sim_score > high_val[0]:

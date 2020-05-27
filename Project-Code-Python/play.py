@@ -2,7 +2,6 @@ from PIL import Image, ImageChops, ImageOps, ImageDraw
 import numpy as np
 import math
 
-
 img1 = Image.open('./Problems/Basic Problems B/Basic Problem B-09/A.png').convert('RGB')
 img2 = Image.open('./Problems/Basic Problems B/Basic Problem B-12/C.png').convert('RGB')
 
@@ -112,18 +111,19 @@ def close_enough(a, b):
 
 def o(var):
     # return Image.open('./Problems/Basic Problems B/Basic Problem B-10/' + var + '.png').convert('RGB')
-    return Image.open('./Problems/Challenge Problems B/Challenge Problem B-05/' + var + '.png').convert('RGB')
+    return Image.open('./Problems/Challenge Problems B/Challenge Problem B-02/' + var + '.png').convert('RGB')
 
 
-
-
-l = [5,3,8,2]
-
-print(max(l))
-
-#
-# a = o("C")
-# # a.rotate(270)
+a = o("A")
+b = o("B")
+white = (255, 255, 255)
+rot = a.convert('RGBA').rotate(315, expand=0)
+fff = Image.new('RGBA', rot.size, (255,)*4)
+out = Image.composite(rot, fff, rot)
+out.convert(a.mode).show()
+a = np.array(a.rotate(315, Image.NEAREST, expand=0, fillcolor=white))
+b = np.array(b)
+print(np.mean(a == b))
 # a = np.array(a.rotate(270))
 # b = np.array(o("6"))
 # # print(np.mean(a == b))
