@@ -36,6 +36,15 @@ class Agent:
     # Returning your answer as a string may cause your program to crash.
     def Solve(self, problem):
         self.problem = problem
+        if problem.problemType == "3x3":
+            return self.solve_3x3(problem)
+        if problem.problemType == "2x2":
+            return self.solve_2x2(problem)
+
+        print("Error: need to debug if you get here!")
+        return -1
+
+    def solve_2x2(self, problem):
         answer = self.all_same_check()
         if answer is not -1:
             print(problem.name, problem.problemType, "all_same_check")
@@ -64,6 +73,12 @@ class Agent:
         print(problem.name, problem.problemType)
         return -1
 
+    def solve_3x3(self, problem):
+        answer = self.all_same_3x3()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "all_same_3x3")
+            return answer
+        return -1
     # below are root thinking methods
 
     def all_same_check(self):
@@ -72,6 +87,15 @@ class Agent:
         if self.is_same(a, b, c):
             best_match = self.check_best_match(a)
             if self.is_same(a, self.open(best_match)):
+                return best_match
+        return -1
+
+    def all_same_3x3(self):
+        """If A==B==C then look for A==i"""
+        a, b, c, d, e, f, g, h = self.open("A", "B", "C", "D", "E", "F", "G", "H")
+        if self.is_same(a, b, c) and self.is_same(d, e, f) and self.is_same(g, h):
+            best_match = self.check_best_match(g)
+            if self.is_same(g, self.open(best_match)):
                 return best_match
         return -1
 
@@ -222,10 +246,10 @@ class Agent:
     @staticmethod
     def rotation_check(a, b):
         """"Returns -1 if no match is found otherwise it returns the matching rotation"""
-        loop_count = int(360/15)
+        loop_count = int(360 / 15)
         for i in range(1, loop_count):
-            if Agent.close_enough(Agent.rotate(a, 15*i), b):
-                return 15*i
+            if Agent.close_enough(Agent.rotate(a, 15 * i), b):
+                return 15 * i
         return -1
 
     @staticmethod

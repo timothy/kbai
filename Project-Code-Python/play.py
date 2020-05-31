@@ -106,24 +106,42 @@ def te(*t):
 def close_enough(a, b):
     np_a = np.array(a)
     np_b = np.array(b)
-    return np.mean(np_a == np_b) >= .95
+    return np.mean(np_a == np_b)  # >= .95
 
 
 def o(var):
     # return Image.open('./Problems/Basic Problems B/Basic Problem B-10/' + var + '.png').convert('RGB')
-    return Image.open('./Problems/Challenge Problems B/Challenge Problem B-02/' + var + '.png').convert('RGB')
+    # return Image.open('./Problems/Challenge Problems C/Challenge Problem C-01/' + var + '.png').convert('RGB')
+    return Image.open('./Problems/Basic Problems C/Basic Problem C-02/' + var + '.png').convert('RGB')
 
 
-a = o("A")
-b = o("B")
-white = (255, 255, 255)
-rot = a.convert('RGBA').rotate(315, expand=0)
-fff = Image.new('RGBA', rot.size, (255,)*4)
-out = Image.composite(rot, fff, rot)
-out.convert(a.mode).show()
-a = np.array(a.rotate(315, Image.NEAREST, expand=0, fillcolor=white))
-b = np.array(b)
-print(np.mean(a == b))
+pset = list("ABCDEFGH")
+
+for i in pset:
+    print(np.count_nonzero(o(str(i))), i)
+
+print(np.count_nonzero(o(str(4))), 4)
+
+# a = o("G")
+# b = o("H")
+# c = o("4")
+# # d = o("4")
+# print(np.count_nonzero(a))
+# print(np.count_nonzero(b))
+# print(np.count_nonzero(c))
+# for i in range(1, 9):
+#     print(np.count_nonzero(o(str(i))), i)
+
+
+# print(close_enough(d, c))
+# white = (255, 255, 255)
+# rot = a.convert('RGBA').rotate(315, expand=0)
+# fff = Image.new('RGBA', rot.size, (255,)*4)
+# out = Image.composite(rot, fff, rot)
+# out.convert(a.mode).show()
+# a = np.array(a.rotate(315, Image.NEAREST, expand=0, fillcolor=white))
+# b = np.array(b)
+# print(np.mean(a == b))
 # a = np.array(a.rotate(270))
 # b = np.array(o("6"))
 # # print(np.mean(a == b))
