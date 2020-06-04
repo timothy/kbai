@@ -6,6 +6,23 @@ img1 = Image.open('./Problems/Basic Problems B/Basic Problem B-09/A.png').conver
 img2 = Image.open('./Problems/Basic Problems B/Basic Problem B-12/C.png').convert('RGB')
 
 
+def consecutive_average(a):
+    new_arr = []
+    add_all = 0
+    count = 1
+    for x in range(len(a) - 1):
+        if a[x + 1] == a[x] + 1:
+            if count == 1:
+                add_all += a[x] + a[x + 1]
+            else:
+                add_all += a[x + 1]
+            count += 1
+        else:
+            new_arr.append(add_all / count)
+            count = 1
+            add_all = 0
+    return new_arr
+
 # TODO problem 10. A - B
 
 # diff = ImageChops.difference(img2, img1)
@@ -116,11 +133,66 @@ def o(var):
 
 
 pset = list("ABCDEFGH")
+#
+# A = np.array([0, 0, 0, 255, 255, 0, 0, 0, 0, 255])
+#
+# np_a = np.array(o("A"))
+#
+# idx = (np_a > -1) * (np_a < 1)
+# print(np.where(idx))
+#
+# with np.printoptions(threshold=np.inf):
+#     print(np.unique(np.where(idx)))
+
+# np_a[:] = 0
+
+
+# np_a[math.floor(np_a.shape[1] / 2), :] = 255
+#
+# print(np_a.shape[1])
+#
+# Image.fromarray(np_a).show()
+# np_a = np.array(o(str("3")))
+# idx = (np_a[math.floor(np_a.shape[1] / 2), :] > -1) * (np_a[math.floor(np_a.shape[1] / 2), :] < 1)
+# # print(np.where(idx))
+#
+# with np.printoptions(threshold=np.inf):
+#     print(np.unique(np.where(idx)), "3")
+
+"""
+Are they all the same size? check size first
+is there a change of value in the position from problem to problem or does it stay relatively the same?
+
+Stupid circle may have to draw more than one line or draw one that is not as centered
+
+do everything twice or three times... Low, Med, High
+"""
+np_a = np.array(o(str("4")))
+idx = (np_a[math.floor(np_a.shape[1] / 2), :] > -1) * (np_a[math.floor(np_a.shape[1] / 2), :] < 1)
+idx2 = (np_a[math.floor((np_a.shape[1]+70) / 2), :] > -1) * (np_a[math.floor((np_a.shape[1]+70) / 2), :] < 1)
+# print(np.where(idx))
+
+with np.printoptions(threshold=np.inf):
+    print(consecutive_average(np.unique(np.where(idx))), "4")
+    print(consecutive_average(np.unique(np.where(idx2))), "4")
 
 for i in pset:
-    print(np.count_nonzero(o(str(i))), i)
+    np_a = np.array(o(str(i)))
+    idx = (np_a[math.floor(np_a.shape[1] / 2), :] > -1) * (np_a[math.floor(np_a.shape[1] / 2), :] < 1)
+    # print(np.where(idx))
+    #print(consecutive_average(np.unique(np.where(idx))))
 
-print(np.count_nonzero(o(str(4))), 4)
+    with np.printoptions(threshold=np.inf):
+        print(" ")
+        print(consecutive_average(np.unique(np.where(idx))), i)
+        # print(np.unique(np.where(idx)).size, np.unique(np.where(idx)), i)
+
+a = [0, 1, 2, 26, 27, 28, 29, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
+     101, 102, 103, 104, 154, 155, 156, 157]
+
+
+#
+# print(np.count_nonzero(o(str(4))), 4)
 
 # a = o("G")
 # b = o("H")
