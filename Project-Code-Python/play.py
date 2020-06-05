@@ -132,6 +132,50 @@ def o(var):
     return Image.open('./Problems/Basic Problems C/Basic Problem C-02/' + var + '.png').convert('RGB')
 
 
+def return_pattern(arr):
+    result = {
+        "AB": [],
+        "BC": [],
+        "DE": [],
+        "EF": [],
+        "GH": []
+    }
+    total = []
+    for x in result:
+        length = len(arr[x[0]])
+        if len(arr[x[0]]) != len(arr[x[1]]):
+            length = abs(len(arr[x[0]]) - len(arr[x[1]]))
+
+        for i in range(length):
+            result[x].append(abs(arr[x[0]][i] - arr[x[1]][i]))  # not using this but might later keeping it for now
+            if len(total) <= i:
+                total.append(result[x][i])
+            else:
+                total[i] += result[x][i]
+    print(result, "result")
+    for t in range(len(total)):
+        if total[t] > 1:
+            total[t] = total[t] / len(result)
+    print(total)
+
+
+    # print(arr)
+    # a = np.array(arr)
+    # # a = np.add.reduceat(np_arr, [0, 3])
+    # a = np.array([sum(a[current: current + 3]) for current in range(0, len(a), 3)])
+    # # a = a/3
+    # with np.printoptions(threshold=np.inf):
+    #     print(a)
+
+result = {
+    "AB": 0,
+    "BC": 0,
+    "DE": 0,
+    "EF": 0,
+    "GH": 0
+}
+for r in result:
+    print(r[0])
 pset = list("ABCDEFGH")
 #
 # A = np.array([0, 0, 0, 255, 255, 0, 0, 0, 0, 255])
@@ -171,7 +215,7 @@ np_a = np.array(o(str("4")))
 idx = (np_a[math.floor(np_a.shape[1] / 2), :] > -1) * (np_a[math.floor(np_a.shape[1] / 2), :] < 1)
 idx2 = (np_a[math.floor((np_a.shape[1]+70) / 2), :] > -1) * (np_a[math.floor((np_a.shape[1]+70) / 2), :] < 1)
 # print(np.where(idx))
-
+all_arrays = {}
 with np.printoptions(threshold=np.inf):
     print(consecutive_average(np.unique(np.where(idx))), "4")
     print(consecutive_average(np.unique(np.where(idx2))), "4")
@@ -181,15 +225,20 @@ for i in pset:
     idx = (np_a[math.floor(np_a.shape[1] / 2), :] > -1) * (np_a[math.floor(np_a.shape[1] / 2), :] < 1)
     # print(np.where(idx))
     #print(consecutive_average(np.unique(np.where(idx))))
-
+    all_arrays[i] = (consecutive_average(np.unique(np.where(idx))))
     with np.printoptions(threshold=np.inf):
         print(" ")
         print(consecutive_average(np.unique(np.where(idx))), i)
         # print(np.unique(np.where(idx)).size, np.unique(np.where(idx)), i)
 
+print(all_arrays)
+
+return_pattern(all_arrays)
+
+
+
 a = [0, 1, 2, 26, 27, 28, 29, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
      101, 102, 103, 104, 154, 155, 156, 157]
-
 
 #
 # print(np.count_nonzero(o(str(4))), 4)

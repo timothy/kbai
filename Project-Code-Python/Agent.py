@@ -37,8 +37,10 @@ class Agent:
     def Solve(self, problem):
         self.problem = problem
         if problem.problemType == "3x3":
+            all_alpha = list("ABCDEFGH")
             return self.solve_3x3(problem)
         if problem.problemType == "2x2":
+            all_alpha = list("ABC")
             return self.solve_2x2(problem)
 
         print("Error: need to debug if you get here!")
@@ -79,6 +81,7 @@ class Agent:
             print(problem.name, problem.problemType, "all_same_3x3")
             return answer
         return -1
+
     # below are root thinking methods
 
     def all_same_check(self):
@@ -302,6 +305,67 @@ class Agent:
                 high_val[0] = sim_score
                 high_val[1] = i
         return high_val[1]
+
+    @staticmethod
+    def consecutive_average(a):
+        """add all consecutive numbers then divide by how many there are"""
+        new_arr = []
+        add_all = 0
+        count = 1
+        for x in range(len(a) - 1):
+            if a[x + 1] == a[x] + 1:
+                if count == 1:
+                    add_all += a[x] + a[x + 1]
+                else:
+                    add_all += a[x + 1]
+                count += 1
+            else:
+                new_arr.append(add_all / count)
+                count = 1
+                add_all = 0
+        return new_arr
+
+    @staticmethod
+    def find_spacing(a, alignment):
+        """calculate the distance between white and black pixels and return an array of distances"""
+        np_a = np.array(a)
+        return Agent.consecutive_average(np.unique(
+            np.where((np_a[alignment % np_a.shape[1], :] > -1) * (np_a[alignment % np_a.shape[1], :] < 1))))
+
+    @staticmethod
+    def find_center_spacing(a):
+        """calculate the distance between white and black pixels and return an array of distances"""
+        np_a = np.array(a)
+        return Agent.consecutive_average(np.unique(
+            np.where((np_a[math.floor(np_a.shape[1] / 2), :] > -1) * (np_a[math.floor(np_a.shape[1] / 2), :] < 1))))
+
+    @staticmethod
+    def return_pattern(arr):
+        """subtract each answer to see if you can use result to guess next img"""
+        result = {
+            "AB": [],
+            "BC": [],
+            "DE": [],
+            "EF": [],
+            "GH": []
+        }
+        total = []
+        for x in result:
+            length = len(arr[x[0]])
+            if len(arr[x[0]]) != len(arr[x[1]]):
+                length = abs(len(arr[x[0]]) - len(arr[x[1]]))
+
+            for i in range(length):
+                result[x].append(abs(arr[x[0]][i] - arr[x[1]][i]))  # not using this but might later keeping it for now
+                if len(total) <= i:
+                    total.append(result[x][i])
+                else:
+                    total[i] += result[x][i]
+        # print(result, "result")
+        for t in range(len(total)):
+            if total[t] > 1:
+                total[t] = total[t] / len(result)
+        return total
 
     # Below code is from PIL Library
 
