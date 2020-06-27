@@ -23,6 +23,7 @@ def consecutive_average(a):
             add_all = 0
     return new_arr
 
+
 # TODO problem 10. A - B
 
 # diff = ImageChops.difference(img2, img1)
@@ -132,6 +133,11 @@ def o(var):
     return Image.open('./Problems/Basic Problems C/Basic Problem C-02/' + var + '.png').convert('RGB')
 
 
+def np_print(arr):
+    with np.printoptions(threshold=np.inf):
+        print(arr)
+
+
 def return_pattern(arr):
     result = {
         "AB": [],
@@ -147,7 +153,7 @@ def return_pattern(arr):
             length = abs(len(arr[x[0]]) - len(arr[x[1]]))
 
         for i in range(length):
-            result[x].append(abs(arr[x[0]][i] - arr[x[1]][i]))  # not using this but might later keeping it for now
+            result[x].append(arr[x[0]][i] - arr[x[1]][i])  # not using this but might later keeping it for now
             if len(total) <= i:
                 total.append(result[x][i])
             else:
@@ -156,8 +162,7 @@ def return_pattern(arr):
     for t in range(len(total)):
         if total[t] > 1:
             total[t] = total[t] / len(result)
-    print(total)
-
+    print(total, "pattern")
 
     # print(arr)
     # a = np.array(arr)
@@ -166,6 +171,7 @@ def return_pattern(arr):
     # # a = a/3
     # with np.printoptions(threshold=np.inf):
     #     print(a)
+
 
 result = {
     "AB": 0,
@@ -177,6 +183,8 @@ result = {
 for r in result:
     print(r[0])
 pset = list("ABCDEFGH")
+
+
 #
 # A = np.array([0, 0, 0, 255, 255, 0, 0, 0, 0, 255])
 #
@@ -191,11 +199,10 @@ pset = list("ABCDEFGH")
 # np_a[:] = 0
 
 
-# np_a[math.floor(np_a.shape[1] / 2), :] = 255
 #
 # print(np_a.shape[1])
 #
-# Image.fromarray(np_a).show()
+
 # np_a = np.array(o(str("3")))
 # idx = (np_a[math.floor(np_a.shape[1] / 2), :] > -1) * (np_a[math.floor(np_a.shape[1] / 2), :] < 1)
 # # print(np.where(idx))
@@ -203,6 +210,90 @@ pset = list("ABCDEFGH")
 # with np.printoptions(threshold=np.inf):
 #     print(np.unique(np.where(idx)), "3")
 
+def idx_horizontal(np_x, divider):
+    return np.array(consecutive_average(np.unique(np.where(
+        (np_x[math.floor(np_x.shape[1] / divider), :] > -1) * (np_x[math.floor(np_x.shape[1] / divider), :] < 1)))))
+
+
+def idx_vertical(np_x, divider):
+    return np.array(consecutive_average(np.unique(
+        np.where(
+            (np_x[:math.floor(np_x.shape[1] / divider)] > -1) * (np_x[:math.floor(np_x.shape[1] / divider)] < 1)))))
+
+
+def idx_signature(np_x):
+    dividers = [1.1, 1.2, 1.3, 1.5, 1.7, 2, 2.5, 3, 4, 5, 7, 12]
+    sig = []
+    for d in dividers:
+        ho = idx_horizontal(np_x, d)
+        vir = idx_vertical(np_x, d)
+        if len(vir):
+            sig.append(vir)
+        if len(ho):
+            sig.append(ho)
+
+    signature = np.array(sig)
+
+    # signature = np.array(
+    #     [idx_horizontal(np_x, dividers[0]),
+    #      idx_vertical(np_x, dividers[0]),
+    #      idx_horizontal(np_x, dividers[1]),
+    #      idx_vertical(np_x, dividers[1]),
+    #      idx_horizontal(np_x, dividers[2]),
+    #      idx_vertical(np_x, dividers[2]),
+    #      idx_horizontal(np_x, dividers[3]),
+    #      idx_vertical(np_x, dividers[3]),
+    #      idx_horizontal(np_x, dividers[4]),
+    #      idx_vertical(np_x, dividers[4]),
+    #      idx_horizontal(np_x, dividers[5]),
+    #      idx_vertical(np_x, dividers[5]),
+    #      idx_horizontal(np_x, dividers[6]),
+    #      idx_vertical(np_x, dividers[6]),
+    #      idx_horizontal(np_x, dividers[7]),
+    #      idx_vertical(np_x, dividers[7]),
+    #      idx_horizontal(np_x, dividers[8]),
+    #      idx_vertical(np_x, dividers[8]),
+    #      idx_horizontal(np_x, dividers[9]),
+    #      idx_vertical(np_x, dividers[9]),
+    #      idx_horizontal(np_x, dividers[10]),
+    #      idx_vertical(np_x, dividers[10]),
+    #      idx_horizontal(np_x, dividers[11]),
+    #      idx_vertical(np_x, dividers[11])]
+    # )
+    print(signature)
+    return signature
+
+
+for i in pset:
+    idx_signature(np.array(o(str(i))))
+    print("")
+print("************************************")
+for i in range(1, 9):
+    idx_signature(np.array(o(str(i))))
+    print("")
+
+idx_signature(np.array(o(str("4"))))
+# vertical
+def idx_signature_view(np_x):
+    np_x[math.floor(np_x.shape[1] / 3), :] = 0  # top third = high
+    np_x[math.floor(np_x.shape[1] / 4), :] = 0  # top third = high
+    np_x[math.floor(np_x.shape[1] / 5), :] = 0  # top third = high
+    np_x[math.floor(np_x.shape[1] / 7), :] = 0  # top third = high
+    np_x[math.floor(np_x.shape[1] / 12), :] = 0  # top third = high
+
+    np_x[math.floor(np_x.shape[1] / 2.5), :] = 0  # right through the middle = mid
+    np_x[math.floor(np_x.shape[1] / 2), :] = 0  # right through the middle = mid
+
+    np_x[math.floor(np_x.shape[1] / 1.7), :] = 0  # bottom third = low
+    np_x[math.floor(np_x.shape[1] / 1.5), :] = 0  # bottom third = low
+    np_x[math.floor(np_x.shape[1] / 1.3), :] = 0
+    np_x[math.floor(np_x.shape[1] / 1.2), :] = 0
+    np_x[math.floor(np_x.shape[1] / 1.1), :] = 0
+    idx_1 = (np_x[math.floor(np_x.shape[1] / 2), :] > -1) * (np_x[math.floor(np_x.shape[1] / 2), :] < 1)
+    Image.fromarray(np_x).show()
+
+
+# idx_signature_view(np.array(o(str("A"))))
 """
 Are they all the same size? check size first
 is there a change of value in the position from problem to problem or does it stay relatively the same?
@@ -213,7 +304,7 @@ do everything twice or three times... Low, Med, High
 """
 np_a = np.array(o(str("4")))
 idx = (np_a[math.floor(np_a.shape[1] / 2), :] > -1) * (np_a[math.floor(np_a.shape[1] / 2), :] < 1)
-idx2 = (np_a[math.floor((np_a.shape[1]+70) / 2), :] > -1) * (np_a[math.floor((np_a.shape[1]+70) / 2), :] < 1)
+idx2 = (np_a[math.floor((np_a.shape[1] + 70) / 2), :] > -1) * (np_a[math.floor((np_a.shape[1] + 70) / 2), :] < 1)
 # print(np.where(idx))
 all_arrays = {}
 with np.printoptions(threshold=np.inf):
@@ -224,21 +315,31 @@ for i in pset:
     np_a = np.array(o(str(i)))
     idx = (np_a[math.floor(np_a.shape[1] / 2), :] > -1) * (np_a[math.floor(np_a.shape[1] / 2), :] < 1)
     # print(np.where(idx))
-    #print(consecutive_average(np.unique(np.where(idx))))
+    # print(consecutive_average(np.unique(np.where(idx))))
     all_arrays[i] = (consecutive_average(np.unique(np.where(idx))))
-    with np.printoptions(threshold=np.inf):
-        print(" ")
-        print(consecutive_average(np.unique(np.where(idx))), i)
+    # with np.printoptions(threshold=np.inf):
+        # print(" ")
+        # print(consecutive_average(np.unique(np.where(idx))), i)
         # print(np.unique(np.where(idx)).size, np.unique(np.where(idx)), i)
 
 print(all_arrays)
 
 return_pattern(all_arrays)
 
-
-
-a = [0, 1, 2, 26, 27, 28, 29, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
+a = [0, 1, 2, 26, 500, 28, 29, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
      101, 102, 103, 104, 154, 155, 156, 157]
+yy = [0, 1, 2, 26, 500, 28, 29, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
+     101, 102]
+
+
+tty = {'A': [1.0, 14.5, 27.5, 40.5, 53.5, 65.5, 117.5, 129.5, 142.5, 155.5], 'B': [1.0, 22.0, 47.5, 91.0, 135.0],
+       'C': [1.0, 14.5, 40.5, 65.5, 117.5, 142.5]}
+
+val1 = tty["A"]
+val2 = tty["B"]
+val3 = min(len(val1), len(val2))
+
+# print(len(min(val1, val2)), "min")
 
 #
 # print(np.count_nonzero(o(str(4))), 4)

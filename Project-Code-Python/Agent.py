@@ -20,6 +20,8 @@ class Agent:
     #
     # Do not add any variables to this signature; they will not be used by
     # main().
+    all_alpha = list("ABC")
+
     def __init__(self):
         self.answer_indexes = [1, 7]
         self.white = (255, 255, 255)
@@ -37,10 +39,10 @@ class Agent:
     def Solve(self, problem):
         self.problem = problem
         if problem.problemType == "3x3":
-            all_alpha = list("ABCDEFGH")
+            Agent.all_alpha = list("ABCDEFGH")
             return self.solve_3x3(problem)
         if problem.problemType == "2x2":
-            all_alpha = list("ABC")
+            Agent.all_alpha = list("ABC")
             return self.solve_2x2(problem)
 
         print("Error: need to debug if you get here!")
@@ -71,18 +73,59 @@ class Agent:
         if answer is not -1:
             print(problem.name, problem.problemType, "a_fill_b")
             return answer
+        answer = self.point_of_intersection()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "point_of_intersection")
+            return answer
 
         print(problem.name, problem.problemType)
-        return -1
+        return -1  # I am changing this from -1. If nothing else if found a shot in the dark is better than a skip
 
     def solve_3x3(self, problem):
         answer = self.all_same_3x3()
         if answer is not -1:
             print(problem.name, problem.problemType, "all_same_3x3")
             return answer
+        answer = self.pixel_growth()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "pixel_growth")
+            return answer
+        answer = self.point_of_intersection()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "point_of_intersection")
+            return answer
+        answer = self.a_2_b_as_c_2_x(["E", "F", "H"])
+        if answer is not -1:
+            print(problem.name, problem.problemType, "e_2_f_as_h_2_x")
+            return answer
         return -1
 
     # below are root thinking methods
+
+    def pixel_growth(self):
+        """calculate the growth of pixels"""
+        a, b, c, d, e, f, g, h = self.open("A", "B", "C", "D", "E", "F", "G", "H")
+        # b_sum = Agent.black_pixel_sum(b)
+        # c_sum = Agent.black_pixel_sum(c)
+        # e_sum = Agent.black_pixel_sum(e)
+        # f_sum = Agent.black_pixel_sum(f)
+        h_sum = Agent.black_pixel_sum(h)
+        g_sum = Agent.black_pixel_sum(g)
+        if Agent.margin_of_error(h_sum, g_sum, 10):
+            return -1
+        # avg = ((c_sum-b_sum) + (f_sum-e_sum))/2
+        avg = h_sum - g_sum
+        for i in self.answers():
+            i_sum_diff = Agent.black_pixel_sum(self.open(i)) - h_sum
+            if Agent.margin_of_error(avg, i_sum_diff, 200):
+                return i
+        return -1
+
+
+    def euclidean_distance(self):
+        """Find the closest using Euclid Dist"""
+        g, h = self.open("G", "H")
+        dist = np.linalg.norm(g - h)
 
     def all_same_check(self):
         """If A==B==C then look for A==i"""
@@ -164,18 +207,22 @@ class Agent:
                 return best_match
         return -1
 
-    def a_2_b_as_c_2_x(self):
+    def a_2_b_as_c_2_x(self, abc=None):
         """A is to B as C is to X"""
-        a, b, c = self.open("A", "B", "C")
+        if abc is None:
+            abc = ["A", "B", "C"]
+        a, b, c = self.open(abc[0], abc[1], abc[2])
         sim_score = math.floor(Agent.similarity_score(a, b) * 100)
         closest_match = self.best_similarity(c, Agent.similarity_score(a, b))
         if Agent.margin_of_error(math.floor(Agent.similarity_score(c, self.open(closest_match)) * 100), sim_score):
             return closest_match
-        return self.a_2_c_as_b_2_x()
+        return self.a_2_c_as_b_2_x(abc)
 
-    def a_2_c_as_b_2_x(self):
+    def a_2_c_as_b_2_x(self, abc=None):
         """A is to C as B is to X"""
-        a, b, c = self.open("A", "B", "C")
+        if abc is None:
+            abc = ["A", "B", "C"]
+        a, b, c = self.open(abc[0], abc[1], abc[2])
         sim_score = math.floor(Agent.similarity_score(a, c) * 100)
         closest_match = self.best_similarity(b, Agent.similarity_score(a, c))
         if Agent.margin_of_error(math.floor(Agent.similarity_score(b, self.open(closest_match)) * 100), sim_score):
@@ -206,6 +253,29 @@ class Agent:
             best_match = self.check_best_match(b_filled)
             if self.is_same(b_filled, self.open(best_match)):
                 return best_match
+        return -1
+
+    def point_of_intersection(self):
+        """
+        Draw a line through an image and find the distance between white and black lines for all images. Then look for
+        a growth pattern. If a pattern is found use the growth value to find the next image in the patter.
+        If an image with the same growth value is found then use that image as the answer other wise return -1
+        :return: number
+        """
+        pattern = Agent.return_pattern(self.all_pattern_shape_spacing())
+        is_same = [0]
+        for i in self.answers():
+            is_same.append(0)  # initialize
+            center_spacing = self.find_center_spacing(self.open(i))
+            length = min(len(pattern), len(center_spacing))
+            for x in range(length):
+                if pattern[x] > 1:
+                    if self.margin_of_error(center_spacing[x], pattern[x]):
+                        if len(is_same) >= i:  # TODO: create else that detects false answers
+                            is_same[i] += 1
+        pos = int(np.argmax(is_same))
+        if is_same[pos] > 0:
+            return pos
         return -1
 
     # below are helper methods
@@ -336,27 +406,46 @@ class Agent:
     def find_center_spacing(a):
         """calculate the distance between white and black pixels and return an array of distances"""
         np_a = np.array(a)
-        return Agent.consecutive_average(np.unique(
-            np.where((np_a[math.floor(np_a.shape[1] / 2), :] > -1) * (np_a[math.floor(np_a.shape[1] / 2), :] < 1))))
+        return Agent.consecutive_average(
+            np.unique(
+                np.where(
+                    (np_a[math.floor(np_a.shape[1] / 2), :] > -1) * (np_a[math.floor(np_a.shape[1] / 2), :] < 1)
+                )))
+
+    def all_pattern_shape_spacing(self):
+        all_arrays = {}
+        for i in Agent.all_alpha:
+            all_arrays[i] = (Agent.find_center_spacing(self.open(i)))
+        return all_arrays
 
     @staticmethod
-    def return_pattern(arr):
+    def black_pixel_sum(a):
+        a = np.array(a)
+        return ((-1 < a) & (a < 50)).sum()
+
+    @staticmethod
+    def return_pattern(obj, size="2x2"):
         """subtract each answer to see if you can use result to guess next img"""
-        result = {
-            "AB": [],
-            "BC": [],
-            "DE": [],
-            "EF": [],
-            "GH": []
-        }
+        result = {}
+        if size == "3x3":
+            result = {
+                "AB": [],
+                "BC": [],
+                "DE": [],
+                "EF": [],
+                "GH": []
+            }
+        if size == "2x2":
+            result = {
+                "AB": [],
+                "BC": [],
+            }
         total = []
         for x in result:
-            length = len(arr[x[0]])
-            if len(arr[x[0]]) != len(arr[x[1]]):
-                length = abs(len(arr[x[0]]) - len(arr[x[1]]))
-
-            for i in range(length):
-                result[x].append(abs(arr[x[0]][i] - arr[x[1]][i]))  # not using this but might later keeping it for now
+            length = min(len(obj[x[0]]), len(obj[x[1]]))  # always compare against the smaller of the two arrays
+            for i in range(length - 1):
+                result[x].append(abs(obj[x[0]][i] - obj[x[1]][
+                    i]))  # TODO: go through this and check each value is growing/shrinking at the same rate if not set to 0. Also: let negitive values persist
                 if len(total) <= i:
                     total.append(result[x][i])
                 else:
