@@ -16,7 +16,7 @@ def close_enough(a, b):
 def o(var):
     # return Image.open('./Problems/Basic Problems B/Basic Problem B-10/' + var + '.png').convert('RGB')
     # return Image.open('./Problems/Challenge Problems C/Challenge Problem C-01/' + var + '.png').convert('RGB')
-    return Image.open('./Problems/Basic Problems C/Basic Problem C-07/' + var + '.png').convert('RGB')
+    return Image.open('./Problems/Basic Problems C/Basic Problem C-04/' + var + '.png').convert('RGB')
 
 
 def np_print(arr):
@@ -54,8 +54,9 @@ def black_pixels(i):
     print(black_pixels, this_diff, i)
     last_diff = this_diff
     last = black_pixels
-    print(black_pixels-8151)
+    print(black_pixels-8736)
     print("")
+
 
 
 for i in range(1, 9):
@@ -66,7 +67,7 @@ pset = list("ABCDEFGH")
 for i in pset:
     black_pixels(i)
 
-
+print(abs(9053-100), "test")
 # Dynamic Programming implementation of LCS problem
 
 # end of function lcs

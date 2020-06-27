@@ -49,6 +49,7 @@ class Agent:
         return -1
 
     def solve_2x2(self, problem):
+        self.answer_indexes = [1, 7]
         answer = self.all_same_check()
         if answer is not -1:
             print(problem.name, problem.problemType, "all_same_check")
@@ -82,6 +83,8 @@ class Agent:
         return -1  # I am changing this from -1. If nothing else if found a shot in the dark is better than a skip
 
     def solve_3x3(self, problem):
+        self.answer_indexes = [1, 9]
+
         answer = self.all_same_3x3()
         if answer is not -1:
             print(problem.name, problem.problemType, "all_same_3x3")
@@ -105,22 +108,25 @@ class Agent:
     def pixel_growth(self):
         """calculate the growth of pixels"""
         a, b, c, d, e, f, g, h = self.open("A", "B", "C", "D", "E", "F", "G", "H")
-        # b_sum = Agent.black_pixel_sum(b)
-        # c_sum = Agent.black_pixel_sum(c)
-        # e_sum = Agent.black_pixel_sum(e)
-        # f_sum = Agent.black_pixel_sum(f)
+        b_sum = Agent.black_pixel_sum(b)
+        c_sum = Agent.black_pixel_sum(c)
+        e_sum = Agent.black_pixel_sum(e)
+        f_sum = Agent.black_pixel_sum(f)
         h_sum = Agent.black_pixel_sum(h)
         g_sum = Agent.black_pixel_sum(g)
-        if Agent.margin_of_error(h_sum, g_sum, 10):
-            return -1
-        # avg = ((c_sum-b_sum) + (f_sum-e_sum))/2
-        avg = h_sum - g_sum
-        for i in self.answers():
-            i_sum_diff = Agent.black_pixel_sum(self.open(i)) - h_sum
-            if Agent.margin_of_error(avg, i_sum_diff, 200):
-                return i
+        if b_sum < c_sum and e_sum < f_sum and g_sum < h_sum:  # check to make sure it is growing
+            if Agent.margin_of_error(h_sum, g_sum, 10):  # check to make sure the growth is enough to act on
+                return -1
+            # avg = ((c_sum-b_sum) + (f_sum-e_sum))/2
+            avg = h_sum - g_sum
+            i_sum_diff = []
+            for i in self.answers():
+                i_sum_diff.append({
+                    "diff": Agent.black_pixel_sum(self.open(i)) - h_sum,
+                    "index": i
+                })
+            return Agent.closest_high_val(avg, i_sum_diff, self.problem)
         return -1
-
 
     def euclidean_distance(self):
         """Find the closest using Euclid Dist"""
@@ -364,6 +370,32 @@ class Agent:
             if new_val < low_val[0]:
                 low_val[0] = new_val
                 low_val[1] = i
+        return low_val[1]
+
+    @staticmethod
+    def closest_high_val(master_val, val_array, p):
+        """This looks for closest match in val_array to master_val"""
+        low_val = [abs(val_array[0]["diff"] - master_val), val_array[0]["index"]]  # [value, index]
+        for i in val_array:
+            new_val = abs(i["diff"] - master_val)
+            if new_val < low_val[0]:
+                low_val[0] = new_val
+                low_val[1] = i["index"]
+        if low_val[0] < 1:
+            return -1
+        return low_val[1]
+
+    @staticmethod
+    def closest_low_val(master_val, val_array, p):
+        """This looks for closest match in val_array to master_val"""
+        low_val = [abs(val_array["diff"] - master_val), val_array[0]["index"]]  # [value, index]
+        for i in val_array:
+            new_val = abs(i["diff"] - master_val)
+            if new_val < low_val[0]:
+                low_val[0] = new_val
+                low_val[1] = i["index"]
+        if low_val[0] < 1:
+            return -1
         return low_val[1]
 
     def check_best_match(self, a):
