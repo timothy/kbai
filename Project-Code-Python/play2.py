@@ -2,8 +2,8 @@ from PIL import Image, ImageChops, ImageOps, ImageDraw
 import numpy as np
 import math
 
-img1 = Image.open('./Problems/Basic Problems B/Basic Problem B-09/A.png').convert('RGB')
-img2 = Image.open('./Problems/Basic Problems B/Basic Problem B-12/C.png').convert('RGB')
+img1 = Image.open('./Problems/Basic Problems B/Basic Problem B-09/A.png').convert('1')
+img2 = Image.open('./Problems/Basic Problems B/Basic Problem B-12/C.png').convert('1')
 
 
 
@@ -16,14 +16,42 @@ def close_enough(a, b):
 def o(var):
     # return Image.open('./Problems/Basic Problems B/Basic Problem B-10/' + var + '.png').convert('RGB')
     # return Image.open('./Problems/Challenge Problems C/Challenge Problem C-01/' + var + '.png').convert('RGB')
-    return Image.open('./Problems/Basic Problems C/Basic Problem C-04/' + var + '.png').convert('RGB')
+    return Image.open('./Problems/Basic Problems C/Basic Problem C-09/' + var + '.png').convert('1')
 
 
-def np_print(arr):
-    with np.printoptions(threshold=np.inf):
-        print(arr)
+a = o("A")
+c = o("C")
+width, height = a.size
+# box=(left, upper, right, lower)
+
+def trim(im):
+    bg = Image.new(im.mode, im.size, im.getpixel((0,0)))
+    diff = ImageChops.difference(im, bg)
+    diff = ImageChops.add(diff, diff, 2.0, -100)
+    #Bounding box given as a 4-tuple defining the left, upper, right, and lower pixel coordinates.
+    #If the image is completely empty, this method returns None.
+    bbox = diff.getbbox()
+    if bbox:
+        return im.crop(bbox)
+
+#c = c.crop((0, 0, width/2, height))
+
+#a = a.crop((width/2, 0, width, height))
+
+def left_side(x):
+    width, height = x.size
+    return trim(x.crop((0, 0, width / 2, height)))
+
+def right_side(x):
+    width, height = x.size
+    return trim(x.crop((width / 2, 0, width, height)))
 
 
+print(close_enough(left_side(a), right_side(c)), "test for close enough")
+
+
+c = right_side(c).show()
+a = left_side(a).show()
 # a = np.array(o(str("4")))
 # a = np.array(o(str("H")))
 # b = np.array(o(str("G")))
@@ -43,6 +71,7 @@ def margin_of_error(a, b, moe=1):
 
 last = 0
 last_diff = 0
+
 
 def black_pixels(i):
     global last_diff, last

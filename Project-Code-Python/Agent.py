@@ -74,10 +74,10 @@ class Agent:
         if answer is not -1:
             print(problem.name, problem.problemType, "a_fill_b")
             return answer
-        answer = self.point_of_intersection()
-        if answer is not -1:
-            print(problem.name, problem.problemType, "point_of_intersection")
-            return answer
+        # answer = self.point_of_intersection()
+        # if answer is not -1:
+        #     print(problem.name, problem.problemType, "point_of_intersection")
+        #     return answer
 
         print(problem.name, problem.problemType)
         return -1  # I am changing this from -1. If nothing else if found a shot in the dark is better than a skip
@@ -85,14 +85,36 @@ class Agent:
     def solve_3x3(self, problem):
         self.answer_indexes = [1, 9]
 
-        answer = self.all_same_3x3()
-        if answer is not -1:
-            print(problem.name, problem.problemType, "all_same_3x3")
-            return answer
         answer = self.pixel_growth()
         if answer is not -1:
             print(problem.name, problem.problemType, "pixel_growth")
             return answer
+        answer = self.half_flip()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "half_flip")
+            return answer
+        # answer = self.pixel_skip_growth()
+        # if answer is not -1:
+        #     print(problem.name, problem.problemType, "pixel_skip_growth")
+        #     return answer
+        answer = self.pixel_shrink()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "pixel_shrink")
+            return answer
+        answer = self.x_mirror_x()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "x_mirror_x")
+            return answer
+        answer = self.all_same_3x3()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "all_same_3x3")
+            return answer
+        answer = self.same_match()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "same_match")
+            return answer
+
+        # low probability for success
         answer = self.point_of_intersection()
         if answer is not -1:
             print(problem.name, problem.problemType, "point_of_intersection")
@@ -104,6 +126,48 @@ class Agent:
         return -1
 
     # below are root thinking methods
+
+    def half_flip(self):
+        """This cuts the image in half then checks it against a different half"""
+
+        def left_side(x):
+            width, height = x.size
+            return Agent.trim(x.crop((0, 0, width / 2, height)))
+
+        def right_side(x):
+            width, height = x.size
+            return Agent.trim(x.crop((width / 2, 0, width, height)))
+
+        a, b, c, d, e, f, g, h = self.open("A", "B", "C", "D", "E", "F", "G", "H")
+
+        a_l = left_side(a)
+        a_r = right_side(a)
+
+        c_l = left_side(c)
+        c_r = right_side(c)
+
+        d_l = left_side(d)
+        d_r = right_side(d)
+
+        f_l = left_side(f)
+        f_r = right_side(f)
+
+        g_l = left_side(g)
+        g_r = right_side(g)
+
+        percent_same = .90
+
+        if Agent.diff_shape_same_check(a_l, c_r, percent_same) and Agent.diff_shape_same_check(c_l, a_r,
+                                                                                               percent_same) and \
+                Agent.diff_shape_same_check(d_l, f_r, percent_same) and Agent.diff_shape_same_check(f_l, d_r,
+                                                                                                    percent_same):
+            for i in self.answers():
+                i_l = left_side(self.open(i))
+                i_r = right_side(self.open(i))
+                if Agent.diff_shape_same_check(g_l, i_r, percent_same) and Agent.diff_shape_same_check(i_l, g_r,
+                                                                                                       percent_same):
+                    return i
+        return -1
 
     def pixel_growth(self):
         """calculate the growth of pixels"""
@@ -125,7 +189,51 @@ class Agent:
                     "diff": Agent.black_pixel_sum(self.open(i)) - h_sum,
                     "index": i
                 })
-            return Agent.closest_high_val(avg, i_sum_diff, self.problem)
+            return Agent.closest_val(avg, i_sum_diff, self.problem)
+        return -1
+
+    def pixel_skip_growth(self):
+        """calculate the growth of pixels"""
+        a, b, c, d, e, f, g, h = self.open("A", "B", "C", "D", "E", "F", "G", "H")
+        a_sum = Agent.black_pixel_sum(a)
+        c_sum = Agent.black_pixel_sum(c)
+        d_sum = Agent.black_pixel_sum(d)
+        f_sum = Agent.black_pixel_sum(f)
+        h_sum = Agent.black_pixel_sum(h)
+        g_sum = Agent.black_pixel_sum(g)
+        if a_sum < c_sum and d_sum < f_sum:  # check to make sure it is growing
+            if Agent.margin_of_error(h_sum, g_sum, 10):  # check to make sure the growth is enough to act on
+                return -1
+            avg = h_sum - g_sum
+            i_sum_diff = []
+            for i in self.answers():
+                i_sum_diff.append({
+                    "diff": Agent.black_pixel_sum(self.open(i)) - h_sum,
+                    "index": i
+                })
+            return Agent.closest_val(avg, i_sum_diff, self.problem)
+        return -1
+
+    def pixel_shrink(self):
+        """calculate the shrink of pixels"""
+        a, b, c, d, e, f, g, h = self.open("A", "B", "C", "D", "E", "F", "G", "H")
+        b_sum = Agent.black_pixel_sum(b)
+        c_sum = Agent.black_pixel_sum(c)
+        e_sum = Agent.black_pixel_sum(e)
+        f_sum = Agent.black_pixel_sum(f)
+        h_sum = Agent.black_pixel_sum(h)
+        g_sum = Agent.black_pixel_sum(g)
+        if b_sum > c_sum and e_sum > f_sum and g_sum > h_sum:  # check to make sure it is shrinking
+            if Agent.margin_of_error(h_sum, g_sum, 10):  # check to make sure the shrink is enough to act on
+                return -1
+            avg = g_sum - h_sum
+            i_sum_diff = []
+            for i in self.answers():
+                i_sum_diff.append({
+                    "diff": h_sum - Agent.black_pixel_sum(self.open(i)),
+                    "index": i
+                })
+            return Agent.closest_val(avg, i_sum_diff, self.problem)
         return -1
 
     def euclidean_distance(self):
@@ -142,12 +250,39 @@ class Agent:
                 return best_match
         return -1
 
+    def same_match(self, a_str="A", e_str="E", threshold=.94):
+        """"""
+        a, e = self.open(a_str, e_str)
+        if self.close_enough(a, e, threshold):
+            best_match = self.check_best_match(a)
+            if self.close_enough(a, self.open(best_match), threshold):
+                return best_match
+        return self.same_match_cf(threshold=threshold)
+
+    def same_match_cf(self, a_str="C", e_str="F", threshold=.95):
+        """"""
+        a, e = self.open(a_str, e_str)
+        if self.close_enough(a, e, threshold):
+            best_match = self.check_best_match(a)
+            if self.close_enough(a, self.open(best_match), threshold):
+                return best_match
+        return self.same_match_gh(threshold=threshold)
+
+    def same_match_gh(self, a_str="G", e_str="H", threshold=.95):
+        """"""
+        a, e = self.open(a_str, e_str)
+        if self.close_enough(a, e, threshold):
+            best_match = self.check_best_match(a)
+            if self.close_enough(a, self.open(best_match), threshold):
+                return best_match
+        return -1
+
     def all_same_3x3(self):
         """If A==B==C then look for A==i"""
         a, b, c, d, e, f, g, h = self.open("A", "B", "C", "D", "E", "F", "G", "H")
         if self.is_same(a, b, c) and self.is_same(d, e, f) and self.is_same(g, h):
-            best_match = self.check_best_match(g)
-            if self.is_same(g, self.open(best_match)):
+            best_match = self.check_best_match(h)
+            if self.is_same(h, self.open(best_match)):
                 return best_match
         return -1
 
@@ -167,6 +302,21 @@ class Agent:
             best_match = self.check_best_match(c)
             if self.is_same(c, self.open(best_match)):
                 return best_match
+        return -1
+
+    def mirror(self, a, b):
+        """If B is a mirror of A then look for the mirror of C"""
+        a_mirror = ImageOps.mirror(a)
+        return self.is_same(a_mirror, b)
+
+    def x_mirror_x(self):
+        """If B is a mirror of A then look for the mirror of C"""
+        a, c, d, f, g = self.open("A", "C", "D", "F", "G")
+        if self.mirror(a, c) and self.mirror(d, f):
+            g_mirror = ImageOps.mirror(g)
+            best = self.check_best_match(g_mirror)
+            if self.is_same(g_mirror, self.open(best)):
+                return best
         return -1
 
     def a_mirror_b(self):
@@ -338,6 +488,28 @@ class Agent:
         return np.mean(np_a == np_b)
 
     @staticmethod
+    def diff_shape_same_check(a, b, threshold=.90):
+        np_a = np.array(a)
+        np_b = np.array(b)
+
+        if np.mean(np_a == np_b[:, :-1, :]) > threshold:
+            return True
+        if np.mean(np_a[:, :-1, :] == np_b) > threshold:
+            return True
+
+        if np.mean(np_a[:-1, :, :] == np_b[:, :-1, :]) > threshold:
+            return True
+        if np.mean(np_a[:, :-1, :] == np_b[:-1, :, :]) > threshold:
+            return True
+
+        if np.mean(np_a == np_b[:-1, :, :]) > threshold:
+            return True
+        if np.mean(np_a[:-1, :, :] == np_b) > threshold:
+            return True
+
+        return np.mean(np_a == np_b) > threshold
+
+    @staticmethod
     def fill_shape(a):
         Agent.floodfill(a, xy=(0, 0), value=(255, 0, 255), thresh=200)  # fill around shape with magenta
         a = np.array(a)
@@ -373,7 +545,7 @@ class Agent:
         return low_val[1]
 
     @staticmethod
-    def closest_high_val(master_val, val_array, p):
+    def closest_val(master_val, val_array, p):
         """This looks for closest match in val_array to master_val"""
         low_val = [abs(val_array[0]["diff"] - master_val), val_array[0]["index"]]  # [value, index]
         for i in val_array:
@@ -554,3 +726,15 @@ class Agent:
                             new_edge.add((s, t))
             full_edge = edge  # discard pixels processed
             edge = new_edge
+
+    @staticmethod
+    def trim(im, mode="RGB"):
+        bg = Image.new(im.mode, im.size, im.getpixel((0, 0))).convert(mode)
+        diff = ImageChops.difference(im, bg).convert(mode)
+        diff = ImageChops.add(diff, diff, 2.0, -100).convert(mode)
+        # Bounding box given as a 4-tuple defining the left, upper, right, and lower pixel coordinates.
+        # If the image is completely empty, this method returns None.
+        bbox = diff.getbbox()
+        if bbox:
+            return im.crop(bbox)
+        return im
