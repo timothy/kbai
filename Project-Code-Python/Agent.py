@@ -85,22 +85,22 @@ class Agent:
     def solve_3x3(self, problem):
         self.answer_indexes = [1, 9]
 
-        answer = self.pixel_growth()
-        if answer is not -1:
-            print(problem.name, problem.problemType, "pixel_growth")
-            return answer
-        answer = self.half_flip()
-        if answer is not -1:
-            print(problem.name, problem.problemType, "half_flip")
-            return answer
+        # answer = self.pixel_growth()
+        # if answer is not -1:
+        #     print(problem.name, problem.problemType, "pixel_growth")
+        #     return answer
+        # answer = self.half_flip()
+        # if answer is not -1:
+        #     print(problem.name, problem.problemType, "half_flip")
+        #     return answer
         # answer = self.pixel_skip_growth()
         # if answer is not -1:
         #     print(problem.name, problem.problemType, "pixel_skip_growth")
         #     return answer
-        answer = self.pixel_shrink()
-        if answer is not -1:
-            print(problem.name, problem.problemType, "pixel_shrink")
-            return answer
+        # answer = self.pixel_shrink()
+        # if answer is not -1:
+        #     print(problem.name, problem.problemType, "pixel_shrink")
+        #     return answer
         answer = self.x_mirror_x()
         if answer is not -1:
             print(problem.name, problem.problemType, "x_mirror_x")
@@ -660,8 +660,9 @@ class Agent:
                 total[t] = total[t] / len(result)
         return total
 
-    # Below code is from PIL Library
+    # Below code is isolated project-agnostic functions. I borrowed them in accordance with Academic Honesty section
 
+    # BEGIN CODE FROM https://github.com/python-pillow/Pillow/blob/master/src/PIL/ImageDraw.py#L559
     @staticmethod
     def _color_diff(color1, color2):
         """
@@ -671,7 +672,9 @@ class Agent:
             return sum([abs(color1[i] - color2[i]) for i in range(0, len(color2))])
         else:
             return abs(color1 - color2)
+    # END CODE FROM https://github.com/python-pillow/Pillow/blob/master/src/PIL/ImageDraw.py#L559
 
+    # BEGIN CODE FROM https://github.com/python-pillow/Pillow/blob/master/src/PIL/ImageDraw.py#L503
     @staticmethod
     def floodfill(image, xy, value, border=None, thresh=0):
         """
@@ -726,7 +729,9 @@ class Agent:
                             new_edge.add((s, t))
             full_edge = edge  # discard pixels processed
             edge = new_edge
+    # END CODE FROM https://github.com/python-pillow/Pillow/blob/master/src/PIL/ImageDraw.py#L503
 
+    # BEGIN CODE FROM https://stackoverflow.com/a/48605963/5398884
     @staticmethod
     def trim(im, mode="RGB"):
         bg = Image.new(im.mode, im.size, im.getpixel((0, 0))).convert(mode)
@@ -738,3 +743,4 @@ class Agent:
         if bbox:
             return im.crop(bbox)
         return im
+    # END CODE FROM https://stackoverflow.com/a/48605963/5398884
