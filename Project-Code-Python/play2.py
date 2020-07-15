@@ -16,42 +16,54 @@ def close_enough(a, b):
 def o(var):
     # return Image.open('./Problems/Basic Problems B/Basic Problem B-10/' + var + '.png').convert('RGB')
     # return Image.open('./Problems/Challenge Problems C/Challenge Problem C-01/' + var + '.png').convert('RGB')
-    return Image.open('./Problems/Basic Problems C/Basic Problem C-09/' + var + '.png').convert('1')
+    return Image.open('./Problems/Basic Problems E/Basic Problem E-01/' + var + '.png').convert('1')
 
 
-a = o("A")
-c = o("C")
-width, height = a.size
+def a_plus_b_equals_c():
+    a = np.array(o("A"))
+    b = np.array(o("B"))
+    c = a * b
+
+
+
+a = np.array(o("A"))
+b = np.array(o("B"))
+c = a * b
+print(close_enough(Image.fromarray(c), o("C")))
+
+Image.fromarray(c).show()
+
+# width, height = a.size
 # box=(left, upper, right, lower)
 
-def trim(im):
-    bg = Image.new(im.mode, im.size, im.getpixel((0,0)))
-    diff = ImageChops.difference(im, bg)
-    diff = ImageChops.add(diff, diff, 2.0, -100)
-    #Bounding box given as a 4-tuple defining the left, upper, right, and lower pixel coordinates.
-    #If the image is completely empty, this method returns None.
-    bbox = diff.getbbox()
-    if bbox:
-        return im.crop(bbox)
-
-#c = c.crop((0, 0, width/2, height))
-
-#a = a.crop((width/2, 0, width, height))
-
-def left_side(x):
-    width, height = x.size
-    return trim(x.crop((0, 0, width / 2, height)))
-
-def right_side(x):
-    width, height = x.size
-    return trim(x.crop((width / 2, 0, width, height)))
-
-
-print(close_enough(left_side(a), right_side(c)), "test for close enough")
-
-
-c = right_side(c).show()
-a = left_side(a).show()
+# def trim(im):
+#     bg = Image.new(im.mode, im.size, im.getpixel((0,0)))
+#     diff = ImageChops.difference(im, bg)
+#     diff = ImageChops.add(diff, diff, 2.0, -100)
+#     #Bounding box given as a 4-tuple defining the left, upper, right, and lower pixel coordinates.
+#     #If the image is completely empty, this method returns None.
+#     bbox = diff.getbbox()
+#     if bbox:
+#         return im.crop(bbox)
+#
+# #c = c.crop((0, 0, width/2, height))
+#
+# #a = a.crop((width/2, 0, width, height))
+#
+# def left_side(x):
+#     width, height = x.size
+#     return trim(x.crop((0, 0, width / 2, height)))
+#
+# def right_side(x):
+#     width, height = x.size
+#     return trim(x.crop((width / 2, 0, width, height)))
+#
+#
+# print(close_enough(left_side(a), right_side(c)), "test for close enough")
+#
+#
+# c = right_side(c).show()
+# a = left_side(a).show()
 # a = np.array(o(str("4")))
 # a = np.array(o(str("H")))
 # b = np.array(o(str("G")))
@@ -88,15 +100,15 @@ def black_pixels(i):
 
 
 
-for i in range(1, 9):
-    black_pixels(i)
+# for i in range(1, 9):
+#     black_pixels(i)
 
 pset = list("ABCDEFGH")
 
-for i in pset:
-    black_pixels(i)
+# for i in pset:
+#     black_pixels(i)
 
-print(abs(9053-100), "test")
+# print(abs(9053-100), "test")
 # Dynamic Programming implementation of LCS problem
 
 # end of function lcs

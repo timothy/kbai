@@ -40,13 +40,17 @@ class Agent:
         self.problem = problem
         if problem.problemType == "3x3":
             Agent.all_alpha = list("ABCDEFGH")
-            return self.solve_3x3(problem)
+            if problem.problemSetName.endswith('D'):
+                return self.solve_3x3(problem)
+            if problem.problemSetName.endswith('E'):
+                return self.solve_3x3_e(problem)
+
         if problem.problemType == "2x2":
             Agent.all_alpha = list("ABC")
             return self.solve_2x2(problem)
 
         print("Error: need to debug if you get here!")
-        return -1
+        return 7
 
     def solve_2x2(self, problem):
         self.answer_indexes = [1, 7]
@@ -85,22 +89,6 @@ class Agent:
     def solve_3x3(self, problem):
         self.answer_indexes = [1, 9]
 
-        # answer = self.pixel_growth()
-        # if answer is not -1:
-        #     print(problem.name, problem.problemType, "pixel_growth")
-        #     return answer
-        # answer = self.half_flip()
-        # if answer is not -1:
-        #     print(problem.name, problem.problemType, "half_flip")
-        #     return answer
-        # answer = self.pixel_skip_growth()
-        # if answer is not -1:
-        #     print(problem.name, problem.problemType, "pixel_skip_growth")
-        #     return answer
-        # answer = self.pixel_shrink()
-        # if answer is not -1:
-        #     print(problem.name, problem.problemType, "pixel_shrink")
-        #     return answer
         answer = self.x_mirror_x()
         if answer is not -1:
             print(problem.name, problem.problemType, "x_mirror_x")
@@ -125,7 +113,59 @@ class Agent:
             return answer
         return -1
 
+    def solve_3x3_e(self, problem):
+        self.answer_indexes = [1, 9]
+
+        answer = self.a_plus_b_equals_c()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "a_plus_b_equals_c")
+            return answer
+
+        answer = self.x_mirror_x()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "x_mirror_x")
+            return answer
+        answer = self.same_match()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "same_match")
+            return answer
+
+        answer = self.a_2_b_as_c_2_x(["E", "F", "H"])
+        if answer is not -1:
+            print(problem.name, problem.problemType, "e_2_f_as_h_2_x")
+            return answer
+
+        answer = self.half_flip()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "half_flip")
+            return answer
+
+        answer = self.pixel_growth()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "pixel_growth")
+            return answer
+
+        return 7
+
+
+
     # below are root thinking methods
+
+    def a_plus_b_equals_c(self):
+        """Check to see a + b = c"""
+        a, b, c, d, e, f, g, h = self.open("A", "B", "C", "D", "E", "F", "G", "H")
+        a = np.array(a.convert("1"))
+        b = np.array(b.convert("1"))
+        x = a * b
+        if self.close_enough(x, c.convert("1")):
+            g = np.array(g.convert("1"))
+            h = np.array(h.convert("1"))
+            best_match = self.check_best_match_1(g * h)
+            if self.close_enough(g * h, self.open(best_match).convert("1")):
+                return best_match
+        return -1
+
+
 
     def half_flip(self):
         """This cuts the image in half then checks it against a different half"""
@@ -575,6 +615,16 @@ class Agent:
         high_val = [0, 1]  # [value, index]
         for i in self.answers():
             sim_score = Agent.similarity_score(a, self.open(i))
+            if sim_score > high_val[0]:
+                high_val[0] = sim_score
+                high_val[1] = i
+        return high_val[1]
+
+    def check_best_match_1(self, a):
+        """this will compare letter with all numbers and return the one closest to it"""
+        high_val = [0, 1]  # [value, index]
+        for i in self.answers():
+            sim_score = Agent.similarity_score(a, self.open(i).convert("1"))
             if sim_score > high_val[0]:
                 high_val[0] = sim_score
                 high_val[1] = i
