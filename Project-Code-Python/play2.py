@@ -16,7 +16,7 @@ def close_enough(a, b):
 def o(var):
     # return Image.open('./Problems/Basic Problems B/Basic Problem B-10/' + var + '.png').convert('RGB')
     # return Image.open('./Problems/Challenge Problems C/Challenge Problem C-01/' + var + '.png').convert('RGB')
-    return Image.open('./Problems/Basic Problems E/Basic Problem E-01/' + var + '.png').convert('1')
+    return Image.open('./Problems/Basic Problems E/Basic Problem E-05/' + var + '.png').convert('1')
 
 
 def a_plus_b_equals_c():
@@ -28,10 +28,29 @@ def a_plus_b_equals_c():
 
 a = np.array(o("A"))
 b = np.array(o("B"))
-c = a * b
-print(close_enough(Image.fromarray(c), o("C")))
+c = np.array(o("C"))
+a1 = (a == 0).sum()
+b1 = (b == 0).sum()
+c1 = (c == 0).sum()
+print(a1, b1, c1)
+print(a1-b1)
+print(1315-1274)
+print(3788-3737)
 
-Image.fromarray(c).show()
+g = np.array(o("G"))
+h = np.array(o("H"))
+g1 = (g == 0).sum()
+h1 = (h == 0).sum()
+for i in range(1, 9):
+    x = (np.array(o(str(i))) == 0).sum()
+    gh = g1-h1
+    print("index:"+str(i), gh, x, x-gh)
+
+
+pset = list("ABCDEFGH")
+
+# for i in pset:
+#     black_pixels(i)
 
 # width, height = a.size
 # box=(left, upper, right, lower)

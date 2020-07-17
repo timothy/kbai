@@ -125,6 +125,12 @@ class Agent:
         if answer is not -1:
             print(problem.name, problem.problemType, "x_mirror_x")
             return answer
+
+        answer = self.a_min_b_equals_c()
+        if answer is not -1:
+            print(problem.name, problem.problemType, "a_min_b_equals_c")
+            return answer
+
         answer = self.same_match()
         if answer is not -1:
             print(problem.name, problem.problemType, "same_match")
@@ -145,11 +151,30 @@ class Agent:
             print(problem.name, problem.problemType, "pixel_growth")
             return answer
 
-        return 7
-
-
+        return 8
 
     # below are root thinking methods
+
+    def a_min_b_equals_c(self):
+        """a-b=c then find answer that is equal to g-h"""
+        a, b, c, d, e, f, g, h = self.open1("A", "B", "C", "D", "E", "F", "G", "H")
+        a = np.array(a)
+        b = np.array(b)
+        c = np.array(c)
+
+        a0 = (a == 0).sum()
+        b0 = (b == 0).sum()
+        c0 = (c == 0).sum()
+
+        g = (np.array(g) == 0).sum()
+        h = (np.array(h) == 0).sum()
+
+        if Agent.margin_of_error((a0 - b0), c0, 60):
+            for i in self.answers():
+                if Agent.margin_of_error((g-h), (np.array(self.open1(i)) == 0).sum(), 60):
+                    return i
+        return -1
+
 
     def a_plus_b_equals_c(self):
         """Check to see a + b = c"""
@@ -164,8 +189,6 @@ class Agent:
             if self.close_enough(g * h, self.open(best_match).convert("1")):
                 return best_match
         return -1
-
-
 
     def half_flip(self):
         """This cuts the image in half then checks it against a different half"""
@@ -484,6 +507,14 @@ class Agent:
             final.append(Image.open(self.problem.figures[str(i)].visualFilename).convert('RGB'))
         return final
 
+    def open1(self, *attr):
+        if len(attr) is 1:
+            return Image.open(self.problem.figures[str(attr[0])].visualFilename).convert('1')
+        final = []
+        for i in attr:
+            final.append(Image.open(self.problem.figures[str(i)].visualFilename).convert('1'))
+        return final
+
     @staticmethod
     def is_same(*args):
         if len(args) <= 1:
@@ -722,6 +753,7 @@ class Agent:
             return sum([abs(color1[i] - color2[i]) for i in range(0, len(color2))])
         else:
             return abs(color1 - color2)
+
     # END CODE FROM https://github.com/python-pillow/Pillow/blob/master/src/PIL/ImageDraw.py#L559
 
     # BEGIN CODE FROM https://github.com/python-pillow/Pillow/blob/master/src/PIL/ImageDraw.py#L503
@@ -779,6 +811,7 @@ class Agent:
                             new_edge.add((s, t))
             full_edge = edge  # discard pixels processed
             edge = new_edge
+
     # END CODE FROM https://github.com/python-pillow/Pillow/blob/master/src/PIL/ImageDraw.py#L503
 
     # BEGIN CODE FROM https://stackoverflow.com/a/48605963/5398884
